@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Builds
+.next/
+dist/
+out/
+
+# Environment files — NEVER commit these; they contain real secrets.
+# Teammates copy .env.example → .env and fill in their own values.
+.env
+.env.local
+.env.*.local
+
+# Logs & OS noise
+*.log
+.DS_Store
+
+# Editor/tooling
+.vscode/
+.idea/
+.claude/launch.json

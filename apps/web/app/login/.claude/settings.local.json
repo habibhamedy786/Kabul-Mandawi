@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/themacbook/Desktop/afghan-family-care/apps/web/app -type f | sort)"
+    ]
+  }
+}

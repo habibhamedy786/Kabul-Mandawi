@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[dir="rtl"] {
+  font-family: 'Noto Naskh Arabic', ui-sans-serif, system-ui, sans-serif;
+  text-align: right;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: theme("colors.ink.900");
+  background-color: #ffffff;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Animations used across the customer-facing pages
+   ───────────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slowZoom {
+  from { transform: scale(1.08); }
+  to   { transform: scale(1); }
+}
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+.animate-fade-in-up { animation: fadeInUp 0.7s ease-out both; }
+.animate-fade-in    { animation: fadeIn 0.9s ease-out both; }
+.animate-slow-zoom  { animation: slowZoom 12s ease-out forwards; }
+.animate-float      { animation: floatUp 3.5s ease-in-out infinite; }
+
+/* Stagger helpers — add to children that fade in sequence.
+   Prefixed to avoid colliding with Tailwind's transition-delay utilities. */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* Card lift on hover — used by product & category cards */
+.hover-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up, .animate-fade-in, .animate-slow-zoom, .animate-float {
+    animation: none;
+  }
+}

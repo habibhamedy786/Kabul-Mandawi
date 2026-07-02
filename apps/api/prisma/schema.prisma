@@ -1,0 +1,411 @@
+// Afghan Family Care — Database Schema
+// PostgreSQL via Prisma ORM
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ──────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  PROCUREMENT_OFFICER
+  DELIVERY_STAFF
+  CUSTOMER_SUPPORT
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAYMENT_RECEIVED
+  PROCESSING
+  PURCHASED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  COMPLETED
+  REFUND_PENDING
+  REFUNDED
+  CANCELLED
+}
+
+enum WalletStatus {
+  NOT_APPLICABLE
+  HELD
+  RELEASED
+  REFUND_PENDING
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethod {
+  VISA
+  MASTERCARD
+  APPLE_PAY
+  GOOGLE_PAY
+  CARD_OTHER
+  CASH_ON_DELIVERY
+}
+
+enum CustomRequestStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  QUOTED
+  ACCEPTED
+  DECLINED
+  CONVERTED_TO_ORDER
+  CLOSED
+}
+
+enum DeliveryCity {
+  KABUL
+  HERAT
+  MAZAR_I_SHARIF
+  KANDAHAR
+  JALALABAD
+  OTHER
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  PROCESSED
+  REJECTED
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// USERS & AUTH
+// ──────────────────────────────────────────────────────────────────────────
+
+model User {
+  id                String        @id @default(uuid())
+  email             String        @unique
+  passwordHash      String?       // null for Google-only accounts
+  googleId          String?       @unique
+  fullName          String
+  phone             String?
+  country           String?       // residence country: US, CA, DE, TR, GB, AU, AE, SA...
+  role              Role          @default(CUSTOMER)
+  isActive          Boolean       @default(true)
+  emailVerified     Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  addresses         SavedAddress[]
+  orders            Order[]
+  customRequests    CustomRequest[]
+  refreshTokens     RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  deliveryProofsUploaded DeliveryProof[] @relation("UploadedBy")
+  assignedDeliveries Order[]      @relation("AssignedDeliveryStaff")
+  auditLogs         AuditLog[]
+
+  @@index([role])
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  revoked     Boolean  @default(false)
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model SavedAddress {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label         String   // e.g. "Father's house", "Family home"
+  receiverName  String
+  phone         String
+  city          DeliveryCity
+  addressLine   String
+  note          String?
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  orders        Order[]
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// CATALOG
+// ──────────────────────────────────────────────────────────────────────────
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String     @unique  // Groceries, Flowers, Electronics, Clothing, Gifts, Custom Requests
+  slug        String     @unique
+  description String?
+  imageUrl    String?
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  products    Product[]
+
+  @@index([slug])
+}
+
+model Product {
+  id            String      @id @default(uuid())
+  sku           String      @unique
+  name          String
+  description   String
+  // Optional Dari (fa) and Pashto (ps) translations, entered in the admin.
+  nameFa        String?
+  namePs        String?
+  descriptionFa String?
+  descriptionPs String?
+  unitFa        String?
+  unitPs        String?
+  priceUsd      Decimal     @db.Decimal(10, 2)
+  compareAtUsd  Decimal?    @db.Decimal(10, 2)
+  images        String[]
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id])
+  availableCities DeliveryCity[]
+  stockQty      Int         @default(0)
+  unit          String?     // e.g. "5kg bag", "1 dozen", "per item"
+  isActive      Boolean     @default(true)
+  isFeatured    Boolean     @default(false)
+  tags          String[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  orderItems    OrderItem[]
+
+  @@index([categoryId])
+  @@index([isActive, isFeatured])
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// CUSTOM REQUESTS
+// ──────────────────────────────────────────────────────────────────────────
+
+model CustomRequest {
+  id              String               @id @default(uuid())
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id])
+  title           String
+  description     String
+  city            DeliveryCity
+  receiverName    String
+  receiverPhone   String
+  receiverAddress String
+  status          CustomRequestStatus  @default(SUBMITTED)
+  quotedAmountUsd Decimal?             @db.Decimal(10, 2)
+  quoteNote       String?
+  quotedById      String?
+  quotedAt        DateTime?
+  convertedOrderId String?            @unique
+  convertedOrder  Order?               @relation("RequestToOrder", fields: [convertedOrderId], references: [id])
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([status])
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// ORDERS
+// ──────────────────────────────────────────────────────────────────────────
+
+model Order {
+  id                String        @id @default(uuid())
+  orderNumber       String        @unique // human-friendly, e.g. AFC-100231
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+
+  // Receiver / delivery info
+  savedAddressId    String?
+  savedAddress      SavedAddress? @relation(fields: [savedAddressId], references: [id])
+  receiverName      String
+  receiverPhone     String
+  city              DeliveryCity
+  deliveryAddress   String
+  deliveryNote      String?
+
+  // Money
+  subtotalUsd       Decimal       @db.Decimal(10, 2)
+  deliveryFeeUsd    Decimal       @db.Decimal(10, 2) @default(0)
+  totalUsd          Decimal       @db.Decimal(10, 2)
+  currency          String        @default("usd")
+
+  // Status machine
+  status            OrderStatus   @default(PENDING_PAYMENT)
+  walletStatus       WalletStatus @default(NOT_APPLICABLE)
+
+  // Linked custom request, if order originated from one
+  fromCustomRequest CustomRequest? @relation("RequestToOrder")
+
+  // Staffing
+  assignedDeliveryStaffId String?
+  assignedDeliveryStaff   User?    @relation("AssignedDeliveryStaff", fields: [assignedDeliveryStaffId], references: [id])
+
+  items             OrderItem[]
+  payment           Payment?
+  walletHold        WalletHold?
+  deliveryProof     DeliveryProof?
+  refund            Refund?
+  statusHistory     OrderStatusHistory[]
+  supplierInvoices  SupplierInvoice[]
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  nameSnapshot String  // captured at time of order, in case product changes later
+  unitPriceUsd Decimal @db.Decimal(10, 2)
+  quantity    Int
+  lineTotalUsd Decimal @db.Decimal(10, 2)
+  isCustom    Boolean  @default(false)
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(uuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    OrderStatus
+  note      String?
+  changedById String?
+  createdAt DateTime    @default(now())
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// PAYMENTS & WALLET HOLD
+// ──────────────────────────────────────────────────────────────────────────
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String        @unique
+  order             Order         @relation(fields: [orderId], references: [id])
+  stripePaymentIntentId String?    @unique
+  stripeChargeId     String?
+  method            PaymentMethod @default(CARD_OTHER)
+  amountUsd         Decimal       @db.Decimal(10, 2)
+  status            PaymentStatus @default(PENDING)
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+// Implements the Wallet Hold system described in the spec:
+// Held -> Released (on successful delivery) or Refund Pending -> Refunded
+model WalletHold {
+  id          String       @id @default(uuid())
+  orderId     String       @unique
+  order       Order        @relation(fields: [orderId], references: [id])
+  amountUsd   Decimal      @db.Decimal(10, 2)
+  status      WalletStatus @default(HELD)
+  heldAt      DateTime     @default(now())
+  releasedAt  DateTime?
+  refundRequestedAt DateTime?
+  refundedAt  DateTime?
+  notes       String?
+}
+
+model Refund {
+  id          String       @id @default(uuid())
+  orderId     String       @unique
+  order       Order        @relation(fields: [orderId], references: [id])
+  amountUsd   Decimal      @db.Decimal(10, 2)
+  reason      String
+  status      RefundStatus @default(PENDING)
+  stripeRefundId String?
+  processedById String?
+  processedAt DateTime?
+  createdAt   DateTime     @default(now())
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// DELIVERY PROOF & PROCUREMENT
+// ──────────────────────────────────────────────────────────────────────────
+
+model DeliveryProof {
+  id              String   @id @default(uuid())
+  orderId         String   @unique
+  order           Order    @relation(fields: [orderId], references: [id])
+  photoUrls       String[]
+  signatureUrl    String?
+  receiverName    String
+  deliveryNotes   String?
+  deliveredAt     DateTime
+  uploadedById    String
+  uploadedBy      User     @relation("UploadedBy", fields: [uploadedById], references: [id])
+  createdAt       DateTime @default(now())
+}
+
+model SupplierInvoice {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id])
+  supplierName String
+  invoiceUrl  String
+  amountUsd   Decimal  @db.Decimal(10, 2)
+  uploadedById String
+  createdAt   DateTime @default(now())
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// AUDIT
+// ──────────────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String   // e.g. "ORDER_STATUS_CHANGED", "REFUND_PROCESSED"
+  entityType String
+  entityId  String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([entityType, entityId])
+}

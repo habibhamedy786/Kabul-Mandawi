@@ -262,6 +262,7 @@ model Order {
   city              DeliveryCity
   deliveryAddress   String
   deliveryNote      String?
+  isExpress         Boolean       @default(false)  // same-day express delivery (+$5)
 
   // Money
   subtotalUsd       Decimal       @db.Decimal(10, 2)

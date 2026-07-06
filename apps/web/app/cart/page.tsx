@@ -15,7 +15,8 @@ export default function CartPage() {
   const router = useRouter();
   const { lang } = useLang();
   const tx = t[lang].cart;
-  const deliveryFee = lines.length > 0 ? 5 : 0;
+  // Standard delivery in Kabul is free; express (+$5) is chosen at checkout.
+  const deliveryFee = 0;
 
   if (lines.length === 0) {
     return (
@@ -66,7 +67,7 @@ export default function CartPage() {
           <h2 className="font-semibold text-ink-900">{tx.summary}</h2>
           <div className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between text-ink-600"><span>{tx.subtotal}</span><span>{formatUsd(subtotal)}</span></div>
-            <div className="flex justify-between text-ink-600"><span>{tx.delivery}</span><span>{formatUsd(deliveryFee)}</span></div>
+            <div className="flex justify-between text-ink-600"><span>{tx.delivery}</span><span className="font-medium text-brand-700">{t[lang].checkout.free}</span></div>
             <div className="flex justify-between border-t border-ink-100 pt-2 font-bold text-ink-900">
               <span>{tx.total}</span>
               <span className="text-right">

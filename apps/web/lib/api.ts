@@ -116,6 +116,11 @@ export const api = {
   },
   admin: {
     analytics: () => apiRequest("/admin/analytics/overview"),
+    uploadImage: (file: File) => {
+      const fd = new FormData();
+      fd.append("image", file);
+      return apiRequest<{ url: string }>("/admin/upload", { method: "POST", body: fd, isFormData: true });
+    },
     products: {
       list: (query: string = "") => apiRequest(`/products${query}`, { authenticated: false }),
       create: (body: unknown) => apiRequest("/admin/products", { method: "POST", body }),

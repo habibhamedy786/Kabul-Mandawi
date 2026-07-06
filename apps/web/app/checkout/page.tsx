@@ -39,10 +39,11 @@ export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [payMethod, setPayMethod] = useState<"ONLINE" | "COD">("ONLINE");
+  const [deliveryType, setDeliveryType] = useState<"STANDARD" | "EXPRESS">("STANDARD");
   const [codPlaced, setCodPlaced] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const deliveryFee = 5;
+  const deliveryFee = deliveryType === "EXPRESS" ? 5 : 0; // standard delivery in Kabul is free
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/login?redirect=/checkout");
@@ -70,7 +71,7 @@ export default function CheckoutPage() {
       const res = await api.orders.create({
         items: lines.map((l) => ({ productId: l.product.id, quantity: l.quantity })),
         receiverName, receiverPhone, city, deliveryAddress, deliveryNote,
-        paymentMethod: payMethod,
+        paymentMethod: payMethod, deliveryType,
       }) as { order: { orderNumber: string }; clientSecret?: string; cod?: boolean };
       setOrderNumber(res.order.orderNumber);
       if (res.cod) {
@@ -148,6 +149,33 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          {/* Delivery method */}
+          <div className="rounded-2xl border border-ink-100 p-6">
+            <h2 className="font-semibold text-ink-900">{tx.deliveryMethod}</h2>
+            <div className="mt-4 space-y-3">
+              <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${deliveryType === "STANDARD" ? "border-brand-600 bg-brand-50" : "border-ink-200"}`}>
+                <input type="radio" name="deliveryType" className="mt-1 accent-brand-600" checked={deliveryType === "STANDARD"} onChange={() => setDeliveryType("STANDARD")} />
+                <span className="flex-1">
+                  <span className="flex items-center justify-between font-medium text-ink-900">
+                    <span>{tx.standardDelivery}</span>
+                    <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-800">{tx.free}</span>
+                  </span>
+                  <span className="block text-sm text-ink-500">{tx.standardDesc}</span>
+                </span>
+              </label>
+              <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${deliveryType === "EXPRESS" ? "border-brand-600 bg-brand-50" : "border-ink-200"}`}>
+                <input type="radio" name="deliveryType" className="mt-1 accent-brand-600" checked={deliveryType === "EXPRESS"} onChange={() => setDeliveryType("EXPRESS")} />
+                <span className="flex-1">
+                  <span className="flex items-center justify-between font-medium text-ink-900">
+                    <span>{tx.expressDelivery} ⚡</span>
+                    <span className="text-sm font-semibold text-ink-700">+$5.00</span>
+                  </span>
+                  <span className="block text-sm text-ink-500">{tx.expressDesc}</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
           {/* Payment method */}
           <div className="rounded-2xl border border-ink-100 p-6">
             <h2 className="font-semibold text-ink-900">{tx.payMethod}</h2>
@@ -187,7 +215,7 @@ export default function CheckoutPage() {
           </ul>
           <div className="mt-4 space-y-1 border-t border-ink-100 pt-3 text-sm">
             <div className="flex justify-between text-ink-600"><span>{tx.subtotal}</span><span>{formatUsd(subtotal)}</span></div>
-            <div className="flex justify-between text-ink-600"><span>{tx.delivery}</span><span>{formatUsd(deliveryFee)}</span></div>
+            <div className="flex justify-between text-ink-600"><span>{tx.delivery}</span><span>{deliveryFee === 0 ? tx.free : formatUsd(deliveryFee)}</span></div>
             <div className="flex justify-between font-bold text-ink-900">
               <span>{tx.total}</span>
               <span className="text-right">

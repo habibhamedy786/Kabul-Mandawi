@@ -39,6 +39,20 @@ export default function AdminProductsPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleImageUpload(file: File) {
+    setUploading(true);
+    setError("");
+    try {
+      const { url } = await api.admin.uploadImage(file);
+      setForm((f) => ({ ...f, imageUrl: url }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Image upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function load() {
     Promise.all([
@@ -160,7 +174,28 @@ export default function AdminProductsPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <Input label="Image URL" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
+                <label className="text-sm font-medium text-ink-800">Product photo</label>
+                <div className="mt-1 flex items-start gap-4">
+                  {form.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={form.imageUrl} alt="preview" className="h-20 w-20 flex-shrink-0 rounded-lg border border-ink-100 object-cover" />
+                  ) : (
+                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg border border-dashed border-ink-200 text-xs text-ink-400">No image</div>
+                  )}
+                  <div className="flex-1 space-y-2">
+                    <label className="inline-flex cursor-pointer items-center rounded-xl border border-ink-200 px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-50">
+                      {uploading ? "Uploading…" : "Upload photo"}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/heic"
+                        className="hidden"
+                        disabled={uploading}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ""; }}
+                      />
+                    </label>
+                    <Input label="…or paste an image URL" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
+                  </div>
+                </div>
               </div>
               <label className="flex items-center gap-2 text-sm text-ink-700">
                 <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} />

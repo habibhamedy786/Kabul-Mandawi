@@ -10,7 +10,7 @@ import { canTransition } from "@/utils/orderStatus";
 import * as walletService from "@/services/wallet.service";
 import { sendEmail, orderConfirmationEmail } from "@/services/email.service";
 
-const DELIVERY_FEE_USD = 5; // flat MVP delivery fee, Kabul-only for now
+const EXPRESS_FEE_USD = 5; // same-day express delivery; standard delivery in Kabul is free
 
 const checkoutItemSchema = z.object({
   productId: z.string(),
@@ -27,6 +27,8 @@ const checkoutSchema = z.object({
   deliveryNote: z.string().optional(),
   // ONLINE = card via the payment gateway; COD = receiver pays cash on delivery.
   paymentMethod: z.enum(["ONLINE", "COD"]).default("ONLINE"),
+  // STANDARD = free next-day; EXPRESS = same-day for a $5 fee.
+  deliveryType: z.enum(["STANDARD", "EXPRESS"]).default("STANDARD"),
 });
 
 function generateOrderNumber() {
@@ -57,7 +59,9 @@ export const createOrder = asyncHandler(async (req: AuthedRequest, res: Response
     };
   });
 
-  const total = subtotal + DELIVERY_FEE_USD;
+  const isExpress = data.deliveryType === "EXPRESS";
+  const deliveryFee = isExpress ? EXPRESS_FEE_USD : 0; // standard delivery in Kabul is free
+  const total = subtotal + deliveryFee;
   const user = await prisma.user.findUniqueOrThrow({ where: { id: req.user!.sub } });
   const isCod = data.paymentMethod === "COD";
 
@@ -78,8 +82,9 @@ export const createOrder = asyncHandler(async (req: AuthedRequest, res: Response
       city: data.city,
       deliveryAddress: data.deliveryAddress,
       deliveryNote: data.deliveryNote,
+      isExpress,
       subtotalUsd: subtotal,
-      deliveryFeeUsd: DELIVERY_FEE_USD,
+      deliveryFeeUsd: deliveryFee,
       totalUsd: total,
       status: initialStatus,
       items: { create: itemsData },

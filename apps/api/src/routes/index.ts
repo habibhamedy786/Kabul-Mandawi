@@ -12,6 +12,10 @@ import { orderProofRouter, adminProofRouter } from "@/routes/deliveryProof.route
 import paymentRoutes from "@/routes/payment.routes";
 import adminAnalyticsRoutes from "@/routes/admin.routes";
 import contactRoutes, { adminContactRouter } from "@/routes/contact.routes";
+import { authenticate } from "@/middleware/auth";
+import { authorize, ROLES } from "@/middleware/rbac";
+import { upload } from "@/middleware/upload";
+import { uploadImage } from "@/controllers/upload.controller";
 
 const router = Router();
 
@@ -39,6 +43,7 @@ router.use("/admin/orders", orderRefundRouter);    // refund-request, refund-pro
 router.use("/admin/custom-requests", adminCustomRequestRouter);
 router.use("/admin/refunds", adminRefundRouter);
 router.use("/admin/contact", adminContactRouter);
+router.post("/admin/upload", authenticate, authorize(...ROLES.ANY_ADMIN), upload.single("image"), uploadImage);
 router.use("/admin", adminAnalyticsRoutes);
 
 export default router;

@@ -44,7 +44,7 @@ const wrapper = (body: string) => `
     <div style="border:1px solid #e2e8f0; border-top:none; padding:24px; border-radius:0 0 12px 12px;">
       ${body}
       <p style="color:#718096; font-size:12px; margin-top:24px;">
-        Kabul Mandawi — send love home to Afghanistan.
+        Kabul Mandawi — Afghanistan's online marketplace.
       </p>
     </div>
   </div>`;

@@ -12,12 +12,23 @@ export const s3 = new S3Client({
   },
 });
 
-/** Uploads a buffer (e.g. from multer memory storage) and returns its public URL. */
+/** True once Cloudflare R2 / S3 credentials are configured. */
+export function isStorageConfigured(): boolean {
+  return Boolean(env.s3.endpoint && env.s3.accessKeyId && env.s3.publicBaseUrl);
+}
+
+/** Uploads a buffer (e.g. from multer memory storage) and returns its public URL.
+ *  Before cloud storage is configured it falls back to an inline data URI so
+ *  uploads still work in development — set up R2 for production (see DEPLOYMENT). */
 export async function uploadBuffer(params: {
   buffer: Buffer;
   mimeType: string;
-  folder: string; // e.g. "delivery-proofs/<orderId>"
+  folder: string; // e.g. "delivery-proofs/<orderId>" or "products"
 }): Promise<string> {
+  if (!isStorageConfigured()) {
+    return `data:${params.mimeType};base64,${params.buffer.toString("base64")}`;
+  }
+
   const key = `${params.folder}/${randomUUID()}`;
 
   await s3.send(new PutObjectCommand({

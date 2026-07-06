@@ -6,9 +6,9 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { LocaleShell } from "@/components/LocaleShell";
 
 export const metadata: Metadata = {
-  title: "Kabul Mandawi | Send Love Home To Afghanistan",
+  title: "Kabul Mandawi | Online Shopping in Afghanistan",
   description:
-    "Buy groceries, flowers, electronics, gifts, and essential products for your family in Afghanistan from anywhere in the world.",
+    "Shop groceries, flowers, electronics, gifts and everyday essentials online — with free delivery across Kabul and same-day express when you need it fast.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

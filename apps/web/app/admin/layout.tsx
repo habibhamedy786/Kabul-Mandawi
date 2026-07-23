@@ -11,23 +11,36 @@ interface NavLink {
   roles: Role[];
 }
 
+// Keep these role groups in sync with the backend ROLES groups in
+// apps/api/src/middleware/rbac.ts — the backend is what actually enforces access;
+// this list just decides which menu items each role sees.
 const ANY_ADMIN: Role[] = ["SUPER_ADMIN", "ADMIN"];
+const ALL_STAFF: Role[] = [
+  "SUPER_ADMIN", "ADMIN",
+  "OPERATIONS_MANAGER", "INVENTORY_MANAGER", "FINANCE_OFFICER", "DELIVERY_COORDINATOR", "MARKETING_MANAGER",
+  "PROCUREMENT_OFFICER", "DELIVERY_STAFF", "CUSTOMER_SUPPORT",
+];
+const CATALOG: Role[] = ["SUPER_ADMIN", "ADMIN", "INVENTORY_MANAGER", "MARKETING_MANAGER"];
+const ORDERS_VIEW: Role[] = ["SUPER_ADMIN", "ADMIN", "OPERATIONS_MANAGER", "FINANCE_OFFICER", "DELIVERY_COORDINATOR", "MARKETING_MANAGER", "PROCUREMENT_OFFICER", "CUSTOMER_SUPPORT"];
+const SUPPORT: Role[] = ["SUPER_ADMIN", "ADMIN", "CUSTOMER_SUPPORT", "OPERATIONS_MANAGER"];
+const REFUND_VIEW: Role[] = ["SUPER_ADMIN", "ADMIN", "FINANCE_OFFICER", "CUSTOMER_SUPPORT", "OPERATIONS_MANAGER"];
+const ANALYTICS: Role[] = ["SUPER_ADMIN", "ADMIN", "OPERATIONS_MANAGER", "FINANCE_OFFICER", "MARKETING_MANAGER"];
 
 const LINKS: NavLink[] = [
-  { href: "/admin", label: "Overview", roles: ANY_ADMIN },
-  { href: "/admin/orders", label: "Orders", roles: ["SUPER_ADMIN", "ADMIN", "PROCUREMENT_OFFICER", "CUSTOMER_SUPPORT"] },
-  { href: "/admin/deliveries", label: "My Deliveries", roles: ["DELIVERY_STAFF"] },
-  { href: "/admin/products", label: "Products", roles: ANY_ADMIN },
-  { href: "/admin/categories", label: "Categories", roles: ANY_ADMIN },
-  { href: "/admin/custom-requests", label: "Custom Requests", roles: ["SUPER_ADMIN", "ADMIN", "CUSTOMER_SUPPORT"] },
-  { href: "/admin/refunds", label: "Refunds", roles: ["SUPER_ADMIN", "ADMIN", "CUSTOMER_SUPPORT"] },
-  { href: "/admin/messages", label: "Messages", roles: ["SUPER_ADMIN", "ADMIN", "CUSTOMER_SUPPORT"] },
+  { href: "/admin", label: "Overview", roles: ANALYTICS },
+  { href: "/admin/orders", label: "Orders", roles: ORDERS_VIEW },
+  { href: "/admin/deliveries", label: "My Deliveries", roles: ["DELIVERY_STAFF", "DELIVERY_COORDINATOR"] },
+  { href: "/admin/products", label: "Products", roles: CATALOG },
+  { href: "/admin/categories", label: "Categories", roles: CATALOG },
+  { href: "/admin/custom-requests", label: "Custom Requests", roles: SUPPORT },
+  { href: "/admin/refunds", label: "Refunds", roles: REFUND_VIEW },
+  { href: "/admin/messages", label: "Messages", roles: SUPPORT },
   { href: "/admin/customers", label: "Customers", roles: ANY_ADMIN },
   { href: "/admin/staff", label: "Staff", roles: ["SUPER_ADMIN"] },
-  { href: "/admin/account", label: "My Account", roles: ["SUPER_ADMIN", "ADMIN", "PROCUREMENT_OFFICER", "DELIVERY_STAFF", "CUSTOMER_SUPPORT"] },
+  { href: "/admin/account", label: "My Account", roles: ALL_STAFF },
 ];
 
-const STAFF_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "PROCUREMENT_OFFICER", "DELIVERY_STAFF", "CUSTOMER_SUPPORT"];
+const STAFF_ROLES: Role[] = ALL_STAFF;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

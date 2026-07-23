@@ -4,6 +4,6 @@ import { authorize, ROLES } from "@/middleware/rbac";
 import { getAnalyticsOverview } from "@/controllers/admin.controller";
 
 const router = Router();
-router.get("/analytics/overview", authenticate, authorize(...ROLES.ANY_ADMIN), getAnalyticsOverview);
+router.get("/analytics/overview", authenticate, authorize(...ROLES.ANALYTICS), getAnalyticsOverview);
 
 export default router;

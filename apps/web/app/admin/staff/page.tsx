@@ -22,6 +22,11 @@ interface StaffRow {
 const POSITIONS: { value: Role; label: string }[] = [
   { value: "SUPER_ADMIN", label: "Super Admin" },
   { value: "ADMIN", label: "Admin" },
+  { value: "OPERATIONS_MANAGER", label: "Operations Manager" },
+  { value: "INVENTORY_MANAGER", label: "Inventory Manager" },
+  { value: "FINANCE_OFFICER", label: "Finance Officer" },
+  { value: "DELIVERY_COORDINATOR", label: "Delivery Coordinator" },
+  { value: "MARKETING_MANAGER", label: "Marketing Manager" },
   { value: "PROCUREMENT_OFFICER", label: "Procurement Officer" },
   { value: "DELIVERY_STAFF", label: "Delivery Staff" },
   { value: "CUSTOMER_SUPPORT", label: "Customer Support" },

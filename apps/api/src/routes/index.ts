@@ -43,7 +43,7 @@ router.use("/admin/orders", orderRefundRouter);    // refund-request, refund-pro
 router.use("/admin/custom-requests", adminCustomRequestRouter);
 router.use("/admin/refunds", adminRefundRouter);
 router.use("/admin/contact", adminContactRouter);
-router.post("/admin/upload", authenticate, authorize(...ROLES.ANY_ADMIN), upload.single("image"), uploadImage);
+router.post("/admin/upload", authenticate, authorize(...ROLES.CATALOG), upload.single("image"), uploadImage);
 router.use("/admin", adminAnalyticsRoutes);
 
 export default router;

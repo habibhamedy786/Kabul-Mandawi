@@ -7,8 +7,8 @@ const router = Router();
 router.get("/", listCategories);
 
 export const adminCategoryRouter = Router();
-adminCategoryRouter.post("/", authenticate, authorize(...ROLES.ANY_ADMIN), createCategory);
-adminCategoryRouter.patch("/:id", authenticate, authorize(...ROLES.ANY_ADMIN), updateCategory);
-adminCategoryRouter.delete("/:id", authenticate, authorize(...ROLES.ANY_ADMIN), deactivateCategory);
+adminCategoryRouter.post("/", authenticate, authorize(...ROLES.CATALOG), createCategory);
+adminCategoryRouter.patch("/:id", authenticate, authorize(...ROLES.CATALOG), updateCategory);
+adminCategoryRouter.delete("/:id", authenticate, authorize(...ROLES.CATALOG), deactivateCategory);
 
 export default router;

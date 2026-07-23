@@ -14,7 +14,7 @@ router.get("/:id", authenticate, getOrder);
 export const adminOrderRouter = Router();
 adminOrderRouter.get("/", authenticate, authorize(...ROLES.ANY_STAFF), adminListOrders);
 adminOrderRouter.patch("/:id/status", authenticate, authorize(...ROLES.ANY_STAFF), adminUpdateOrderStatus);
-adminOrderRouter.patch("/:id/assign", authenticate, authorize(...ROLES.ANY_ADMIN), assignDeliveryStaff);
+adminOrderRouter.patch("/:id/assign", authenticate, authorize(...ROLES.DELIVERY_ASSIGN), assignDeliveryStaff);
 
 export const deliveryRouter = Router();
 deliveryRouter.get("/my-assignments", authenticate, authorize(...ROLES.DELIVERY), listMyAssignments);

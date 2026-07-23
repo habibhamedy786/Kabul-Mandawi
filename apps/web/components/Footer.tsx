@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLang } from "@/context/LanguageContext";
+import { BrandMark } from "@/components/Navbar";
 import t from "@/lib/i18n/translations";
 
 export function Footer() {
@@ -11,15 +12,17 @@ export function Footer() {
   const cats = t[lang].home.cats;
 
   return (
-    <footer className="border-t border-ink-100 bg-ink-900 text-ink-200">
+    <footer className="bg-ink-900 text-ink-200">
+      {/* Saffron accent line */}
+      <div className="h-0.5 w-full bg-saffron-500" aria-hidden="true" />
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <div className="flex items-center gap-2 font-bold text-white">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600">KM</span>
-              Kabul Mandawi
+            <div className="flex items-center gap-2.5 text-white">
+              <BrandMark className="h-7 w-7 text-brand-400" />
+              <span className="font-display text-lg font-semibold">Kabul Mandawi</span>
             </div>
-            <p className="mt-3 text-sm text-ink-300">{tx.tagline}</p>
+            <p className="mt-3 text-sm leading-relaxed text-ink-300">{tx.tagline}</p>
           </div>
 
           <div>

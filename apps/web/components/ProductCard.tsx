@@ -24,8 +24,8 @@ export function ProductCard({ product }: { product: Product }) {
   const outOfStock = product.stockQty <= 0;
 
   return (
-    <div className="hover-lift group flex flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-sm">
-      <Link href={`/products/${product.id}`} className="relative block aspect-square overflow-hidden bg-ink-50">
+    <div className="group flex flex-col overflow-hidden rounded-xl border border-ink-900/10 bg-white transition-shadow hover:shadow-md">
+      <Link href={`/products/${product.id}`} className="relative block aspect-square overflow-hidden border-b border-ink-900/5 bg-paper">
         {image ? (
           <Image src={image} alt={loc.name} width={400} height={400} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
         ) : (
@@ -35,10 +35,11 @@ export function ProductCard({ product }: { product: Product }) {
         )}
 
         {/* Badges */}
-        <div className="absolute left-2 top-2 flex flex-col gap-1">
-          {onSale && <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow">{tx.sale}</span>}
-          {product.isFeatured && !onSale && <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow">★</span>}
-        </div>
+        {onSale && (
+          <span className="absolute left-2 top-2 rounded-md bg-red-700 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+            {tx.sale}
+          </span>
+        )}
 
         {outOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/60">
@@ -48,7 +49,7 @@ export function ProductCard({ product }: { product: Product }) {
       </Link>
 
       <div className="flex flex-1 flex-col gap-1 p-4">
-        <span className="text-xs font-medium uppercase tracking-wide text-brand-600">{catName}</span>
+        <span className="text-xs font-medium uppercase tracking-wider text-ink-400">{catName}</span>
         <Link href={`/products/${product.id}`} className="font-semibold text-ink-900 hover:text-brand-700">
           {loc.name}
         </Link>

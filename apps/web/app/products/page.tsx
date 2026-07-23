@@ -15,10 +15,17 @@ function ProductsContent() {
   const { lang } = useLang();
   const tx = t[lang].products;
   const categorySlug = searchParams.get("category") ?? "";
+  const urlSearch = searchParams.get("search") ?? "";
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [search, setSearch] = useState(urlSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
+
+  // Searches submitted from the navbar or homepage arrive as ?search= in the URL.
+  useEffect(() => {
+    setSearch(urlSearch);
+    setDebouncedSearch(urlSearch);
+  }, [urlSearch]);
   const [sort, setSort] = useState("featured");
   const [loading, setLoading] = useState(true);
 
@@ -57,7 +64,7 @@ function ProductsContent() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-ink-900">{tx.title}</h1>
+          <h1 className="font-display text-3xl font-semibold text-ink-900">{tx.title}</h1>
           <p className="text-sm text-ink-500">{tx.sub}</p>
         </div>
         <input

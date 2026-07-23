@@ -30,9 +30,21 @@ const config: Config = {
           800: "#2e333a",
           900: "#1c1f24",
         },
+        // Warm neutrals — the page background is paper, not pure white.
+        paper: {
+          DEFAULT: "#f8f5ef",
+          dark: "#f1ece2",
+        },
+        // Saffron accent — used sparingly for highlights and small details.
+        saffron: {
+          400: "#e8b04b",
+          500: "#d99a2b",
+          600: "#b87d1a",
+        },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Fraunces", "Noto Naskh Arabic", "Georgia", "serif"],
       },
       borderRadius: {
         xl: "0.875rem",

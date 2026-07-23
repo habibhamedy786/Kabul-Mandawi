@@ -23,10 +23,21 @@ const t = {
     },
     home: {
       badge: "Free delivery across Kabul",
-      headline: "Everything You Need, Delivered in Kabul",
-      sub: "Shop groceries, flowers, electronics, gifts and everyday essentials online — with free delivery across Kabul and same-day express when you need it fast.",
+      headline: "Kabul's market, at your door",
+      sub: "Fresh groceries, flowers, electronics and gifts from the mandawi — ordered online, paid securely, delivered free across Kabul.",
+      searchPlaceholder: "What do you need today?",
+      searchBtn: "Search",
       shopNow: "Shop Now",
       customRequest: "Submit a Custom Request",
+      how: {
+        heading: "How it works",
+        sub: "Three simple steps from the mandawi to your door.",
+        steps: [
+          { title: "Order online", desc: "Browse the shop, or send a custom request for anything you can't find." },
+          { title: "We pick it fresh", desc: "Our team buys from trusted mandawi sellers the same day." },
+          { title: "Delivered with proof", desc: "Free delivery across Kabul — with photo proof, and your payment held until it arrives." },
+        ],
+      },
       features: [
         { title: "Secure Card Payments", desc: "Pay confidently with Visa, Mastercard, Apple Pay or Google Pay — or choose cash on delivery." },
         { title: "Wallet Hold Protection", desc: "Your payment is held safely until delivery is confirmed — refunded if it isn't." },
@@ -367,10 +378,21 @@ const t = {
     },
     home: {
       badge: "تحویل رایگان در سراسر کابل",
-      headline: "هر آنچه نیاز دارید، در کابل تحویل می‌گیرید",
-      sub: "مواد غذایی، گل، لوازم الکترونیکی، هدایا و اقلام روزمره را آنلاین بخرید — با تحویل رایگان در سراسر کابل و تحویل فوری همان‌روز هنگام نیاز.",
+      headline: "مندوی کابل، دم دروازه شما",
+      sub: "مواد غذایی تازه، گل، الکترونیک و هدایا از مندوی — سفارش آنلاین، پرداخت امن و تحویل رایگان در سراسر کابل.",
+      searchPlaceholder: "امروز چه نیاز دارید؟",
+      searchBtn: "جستجو",
       shopNow: "همین حالا خرید کنید",
       customRequest: "ثبت درخواست ویژه",
+      how: {
+        heading: "چطور کار می‌کند",
+        sub: "سه قدم ساده از مندوی تا دروازه شما.",
+        steps: [
+          { title: "آنلاین سفارش دهید", desc: "فروشگاه را ببینید یا برای هر چیزی که پیدا نمی‌کنید درخواست ویژه بفرستید." },
+          { title: "ما تازه تهیه می‌کنیم", desc: "تیم ما همان روز از فروشندگان معتبر مندوی خرید می‌کند." },
+          { title: "تحویل با اثبات", desc: "تحویل رایگان در سراسر کابل — با اثبات تصویری و نگهداری امن پول شما تا رسیدن سفارش." },
+        ],
+      },
       features: [
         { title: "پرداخت امن با ویزا و مسترکارت", desc: "با اطمینان از طریق Stripe با ویزا، مسترکارت، اپل پی یا گوگل پی پرداخت کنید." },
         { title: "حفاظت از پول شما", desc: "پرداخت شما تا تأیید تحویل نگه داشته می‌شود — در صورت عدم تحویل بازپرداخت می‌شود." },
@@ -711,10 +733,21 @@ const t = {
     },
     home: {
       badge: "په ټول کابل کې وړیا سپارل",
-      headline: "هر څه چې اړتیا لرئ، په کابل کې ترلاسه کړئ",
-      sub: "خوراکي توکي، ګلان، برقي توکي، ډالۍ او ورځني اړین توکي آنلاین واخلئ — په ټول کابل کې د وړیا سپارلو او د اړتیا پر مهال د هماغې ورځې چټک سپارلو سره.",
+      headline: "د کابل منډوی، ستاسو تر دروازې",
+      sub: "تازه خوراکي توکي، ګلان، برقي توکي او ډالۍ له منډوي څخه — آنلاین سفارش، خوندي تادیه او په ټول کابل کې وړیا سپارل.",
+      searchPlaceholder: "نن څه ته اړتیا لرئ؟",
+      searchBtn: "لټون",
       shopNow: "همدا اوس پیرود کړئ",
       customRequest: "ځانګړې غوښتنه وسپارئ",
+      how: {
+        heading: "څنګه کار کوي",
+        sub: "له منډوي څخه ستاسو تر دروازې درې ساده ګامونه.",
+        steps: [
+          { title: "آنلاین سفارش ورکړئ", desc: "پلورنځی وګورئ، یا د هر هغه شي لپاره چې نه یې مومئ ځانګړې غوښتنه واستوئ." },
+          { title: "موږ یې تازه اخلو", desc: "زموږ ټیم هماغه ورځ د منډوي له باوري پلورونکو څخه پیري." },
+          { title: "د ثبوت سره سپارل", desc: "په ټول کابل کې وړیا سپارل — د عکسي ثبوت سره، او ستاسو پیسې تر رسیدو پورې خوندي ساتل کیږي." },
+        ],
+      },
       features: [
         { title: "د ویزا او مسترکارډ سره خوندي تادیه", desc: "د Stripe له لارې د ویزا، مسترکارډ، اپل پی یا ګوګل پی سره ډاډمنه تادیه وکړئ." },
         { title: "د پیسو ساتنه", desc: "ستاسو تادیه تر سپارلو تأیید پورې خوندي ساتل کیږي — که سپارل نشي نو بیرته درکول کیږي." },

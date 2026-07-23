@@ -165,6 +165,8 @@ export const api = {
       list: () => apiRequest("/admin/staff?staff=true&pageSize=100"),
       create: (body: { fullName: string; email: string; password: string; role: string; phone?: string }) =>
         apiRequest("/admin/staff", { method: "POST", body }),
+      update: (id: string, body: { fullName?: string; email?: string; phone?: string }) =>
+        apiRequest(`/admin/staff/${id}`, { method: "PATCH", body }),
       updateRole: (id: string, role: string) => apiRequest(`/admin/staff/${id}/role`, { method: "PATCH", body: { role } }),
       setPassword: (id: string, newPassword: string) => apiRequest(`/admin/staff/${id}/password`, { method: "PATCH", body: { newPassword } }),
       setActive: (id: string, isActive: boolean) => apiRequest(`/admin/staff/${id}/status`, { method: "PATCH", body: { isActive } }),

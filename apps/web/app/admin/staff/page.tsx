@@ -48,6 +48,13 @@ export default function AdminStaffPage() {
   const [resetPw, setResetPw] = useState("");
   const [resetMsg, setResetMsg] = useState<string | null>(null);
 
+  // edit details (per-staff inline)
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editMsg, setEditMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
   function load() {
     setLoading(true);
     api.admin.staff.list()
@@ -93,6 +100,25 @@ export default function AdminStaffPage() {
     setResetPw("");
     setResetId(null);
     setTimeout(() => setResetMsg(null), 2500);
+  }
+
+  function startEditStaff(s: StaffRow) {
+    setEditId(editId === s.id ? null : s.id);
+    setEditName(s.fullName);
+    setEditEmail(s.email);
+    setEditPhone(s.phone ?? "");
+    setEditMsg(null);
+  }
+
+  async function saveStaffEdit(id: string) {
+    setEditMsg(null);
+    try {
+      await api.admin.staff.update(id, { fullName: editName, email: editEmail.trim(), phone: editPhone || undefined });
+      setEditId(null);
+      load();
+    } catch (err) {
+      setEditMsg({ type: "err", text: err instanceof Error ? err.message : "Could not update staff member." });
+    }
   }
 
   if (user && user.role !== "SUPER_ADMIN") {
@@ -153,6 +179,9 @@ export default function AdminStaffPage() {
                   <Select value={s.role} onChange={(e) => changeRole(s.id, e.target.value as Role)} className="w-48">
                     {POSITIONS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
                   </Select>
+                  <Button size="sm" variant="outline" onClick={() => startEditStaff(s)}>
+                    {editId === s.id ? "Cancel" : "Edit"}
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => { setResetId(resetId === s.id ? null : s.id); setResetPw(""); setResetMsg(null); }}>
                     {resetId === s.id ? "Cancel" : "Reset password"}
                   </Button>
@@ -161,6 +190,18 @@ export default function AdminStaffPage() {
                   </Button>
                 </div>
               </div>
+
+              {editId === s.id && (
+                <div className="space-y-2 rounded-xl bg-ink-50 p-3">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <Input label="Full name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                    <Input label="Email" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
+                    <Input label="Phone" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} />
+                  </div>
+                  {editMsg && <p className={`text-sm ${editMsg.type === "ok" ? "text-brand-700" : "text-red-600"}`}>{editMsg.text}</p>}
+                  <Button size="sm" onClick={() => saveStaffEdit(s.id)}>Save changes</Button>
+                </div>
+              )}
 
               {resetId === s.id && (
                 <div className="flex flex-wrap items-end gap-2 rounded-xl bg-ink-50 p-3">

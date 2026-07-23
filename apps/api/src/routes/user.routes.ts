@@ -4,7 +4,7 @@ import { authenticate } from "@/middleware/auth";
 import { authorize, ROLES } from "@/middleware/rbac";
 import {
   getMe, updateMe, changeMyPassword, listMyAddresses, createMyAddress, deleteMyAddress,
-  adminListUsers, adminUpdateUserRole, adminSetUserActive, adminCreateStaff, adminSetStaffPassword,
+  adminListUsers, adminUpdateUserRole, adminSetUserActive, adminCreateStaff, adminUpdateStaff, adminSetStaffPassword,
 } from "@/controllers/user.controller";
 
 const router = Router();
@@ -28,6 +28,7 @@ adminUserRouter.patch("/:id/status", authenticate, authorize(...ROLES.ANY_ADMIN)
 export const adminStaffRouter = Router();
 adminStaffRouter.get("/", authenticate, authorize(Role.SUPER_ADMIN), adminListUsers);
 adminStaffRouter.post("/", authenticate, authorize(Role.SUPER_ADMIN), adminCreateStaff);
+adminStaffRouter.patch("/:id", authenticate, authorize(Role.SUPER_ADMIN), adminUpdateStaff);
 adminStaffRouter.patch("/:id/role", authenticate, authorize(Role.SUPER_ADMIN), adminUpdateUserRole);
 adminStaffRouter.patch("/:id/password", authenticate, authorize(Role.SUPER_ADMIN), adminSetStaffPassword);
 adminStaffRouter.patch("/:id/status", authenticate, authorize(Role.SUPER_ADMIN), adminSetUserActive);

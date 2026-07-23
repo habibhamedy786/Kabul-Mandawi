@@ -199,6 +199,39 @@ export const adminCreateStaff = asyncHandler(async (req: AuthedRequest, res: Res
   res.status(201).json(user);
 });
 
+const updateStaffSchema = z.object({
+  fullName: z.string().min(2).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+});
+
+/** PATCH /api/admin/staff/:id — update a staff member's name, email or phone */
+export const adminUpdateStaff = asyncHandler(async (req: AuthedRequest, res: Response) => {
+  const data = updateStaffSchema.parse(req.body);
+
+  const target = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!target) throw new AppError("Staff member not found.", 404);
+  if (target.role === Role.CUSTOMER) {
+    throw new AppError("This action is only available for staff accounts.", 400);
+  }
+
+  // Changing the email: make sure it isn't already used by another account.
+  if (data.email) {
+    data.email = data.email.trim();
+    const existing = await prisma.user.findUnique({ where: { email: data.email } });
+    if (existing && existing.id !== target.id) {
+      throw new AppError("An account with this email already exists.", 409);
+    }
+  }
+
+  const user = await prisma.user.update({
+    where: { id: target.id },
+    data,
+    select: { id: true, email: true, fullName: true, role: true, isActive: true, phone: true, createdAt: true },
+  });
+  res.json(user);
+});
+
 const setPasswordSchema = z.object({ newPassword: z.string().min(8) });
 
 /** PATCH /api/admin/staff/:id/password — admin sets/resets a staff member's password */

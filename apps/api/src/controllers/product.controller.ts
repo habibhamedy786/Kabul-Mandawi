@@ -95,6 +95,21 @@ export const deactivateProduct = asyncHandler(async (req: AuthedRequest, res: Re
   res.status(204).send();
 });
 
+/** DELETE /api/admin/products/:id/permanent (Admin) — hard delete, only when the
+ *  product has never been part of an order (otherwise order history would break;
+ *  the admin should deactivate it instead). */
+export const deleteProduct = asyncHandler(async (req: AuthedRequest, res: Response) => {
+  const orderedCount = await prisma.orderItem.count({ where: { productId: req.params.id } });
+  if (orderedCount > 0) {
+    throw new AppError(
+      "This product is part of past orders, so it can't be permanently deleted. Deactivate it instead to hide it from the store.",
+      409,
+    );
+  }
+  await prisma.product.delete({ where: { id: req.params.id } });
+  res.status(204).send();
+});
+
 /** PATCH /api/admin/products/:id/purchased (Procurement Officer) — mark sourced/purchased */
 export const markProductRestocked = asyncHandler(async (req: AuthedRequest, res: Response) => {
   const { stockQty } = z.object({ stockQty: z.number().int().min(0) }).parse(req.body);

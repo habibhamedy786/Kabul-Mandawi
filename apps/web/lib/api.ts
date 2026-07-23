@@ -126,6 +126,7 @@ export const api = {
       create: (body: unknown) => apiRequest("/admin/products", { method: "POST", body }),
       update: (id: string, body: unknown) => apiRequest(`/admin/products/${id}`, { method: "PATCH", body }),
       deactivate: (id: string) => apiRequest(`/admin/products/${id}`, { method: "DELETE" }),
+      remove: (id: string) => apiRequest(`/admin/products/${id}/permanent`, { method: "DELETE" }),
     },
     categories: {
       list: () => apiRequest("/categories", { authenticated: false }),

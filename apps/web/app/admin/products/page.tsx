@@ -124,6 +124,17 @@ export default function AdminProductsPage() {
     load();
   }
 
+  async function remove(p: Product) {
+    if (!confirm(`Permanently delete "${p.name}"? This cannot be undone.`)) return;
+    try {
+      await api.admin.products.remove(p.id);
+      load();
+    } catch (e) {
+      // Most likely: the product is part of past orders, so deletion is blocked.
+      alert(e instanceof ApiError ? e.message : "Could not delete product.");
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -221,7 +232,8 @@ export default function AdminProductsPage() {
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => startEdit(p)}>Edit</Button>
-                <Button size="sm" variant="danger" onClick={() => deactivate(p.id)}>Deactivate</Button>
+                <Button size="sm" variant="outline" onClick={() => deactivate(p.id)}>Deactivate</Button>
+                <Button size="sm" variant="danger" onClick={() => remove(p)}>Delete</Button>
               </div>
             </CardBody>
           </Card>

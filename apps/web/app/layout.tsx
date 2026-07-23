@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import { LocaleShell } from "@/components/LocaleShell";
 
 export const metadata: Metadata = {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="fa" dir="rtl">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -21,11 +22,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <LanguageProvider>
-          <AuthProvider>
-            <CartProvider>
-              <LocaleShell>{children}</LocaleShell>
-            </CartProvider>
-          </AuthProvider>
+          <CurrencyProvider>
+            <AuthProvider>
+              <CartProvider>
+                <LocaleShell>{children}</LocaleShell>
+              </CartProvider>
+            </AuthProvider>
+          </CurrencyProvider>
         </LanguageProvider>
       </body>
     </html>

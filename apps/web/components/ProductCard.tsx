@@ -6,6 +6,7 @@ import { Product } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { useCart } from "@/context/CartContext";
 import { useLang } from "@/context/LanguageContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import t from "@/lib/i18n/translations";
 import { localizeProduct, localizeCategoryName } from "@/lib/i18n/catalog";
 import { formatUsd, formatAfn } from "@/lib/currency";
@@ -13,6 +14,7 @@ import { formatUsd, formatAfn } from "@/lib/currency";
 export function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const { lang } = useLang();
+  const { afnPerUsd } = useCurrency();
   const tx = t[lang].products;
   const image = product.images?.[0];
   const loc = localizeProduct(product, lang);
@@ -57,10 +59,10 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="mt-2 flex items-center justify-between">
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-ink-900">{formatUsd(price)}</span>
-              {onSale && <span className="text-xs text-ink-400 line-through">{formatUsd(compareAt!)}</span>}
+              <span className="text-lg font-bold text-ink-900">{formatAfn(price, lang, afnPerUsd)}</span>
+              {onSale && <span className="text-xs text-ink-400 line-through">{formatAfn(compareAt!, lang, afnPerUsd)}</span>}
             </div>
-            <span className="text-xs font-medium text-ink-400">≈ {formatAfn(price, lang)}</span>
+            <span className="text-xs font-medium text-ink-400">≈ {formatUsd(price)}</span>
           </div>
           <Button size="sm" disabled={outOfStock} onClick={() => addToCart(product)}>
             {outOfStock ? tx.outOfStock : tx.addToCart}

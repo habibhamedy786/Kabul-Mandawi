@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { StripePaymentForm } from "@/components/StripePaymentForm";
 import { DeliveryCity, SavedAddress } from "@/lib/types";
 import { useLang } from "@/context/LanguageContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import t from "@/lib/i18n/translations";
 import { localizeProduct } from "@/lib/i18n/catalog";
 import { formatUsd, formatAfn } from "@/lib/currency";
@@ -26,6 +27,7 @@ export default function CheckoutPage() {
   const { lines, subtotal, clearCart } = useCart();
   const { user, loading: authLoading } = useAuth();
   const { lang } = useLang();
+  const { afnPerUsd } = useCurrency();
   const tx = t[lang].checkout;
   const router = useRouter();
 
@@ -219,8 +221,8 @@ export default function CheckoutPage() {
             <div className="flex justify-between font-bold text-ink-900">
               <span>{tx.total}</span>
               <span className="text-right">
-                {formatUsd(subtotal + deliveryFee)}
-                <span className="block text-xs font-medium text-ink-400">≈ {formatAfn(subtotal + deliveryFee, lang)}</span>
+                {formatAfn(subtotal + deliveryFee, lang, afnPerUsd)}
+                <span className="block text-xs font-medium text-ink-400">≈ {formatUsd(subtotal + deliveryFee)}</span>
               </span>
             </div>
           </div>

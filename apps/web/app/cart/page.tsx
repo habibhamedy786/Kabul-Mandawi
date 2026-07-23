@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useLang } from "@/context/LanguageContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { Button } from "@/components/ui/Button";
 import t from "@/lib/i18n/translations";
 import { localizeProduct } from "@/lib/i18n/catalog";
@@ -14,6 +15,7 @@ export default function CartPage() {
   const { lines, removeFromCart, updateQuantity, subtotal } = useCart();
   const router = useRouter();
   const { lang } = useLang();
+  const { afnPerUsd } = useCurrency();
   const tx = t[lang].cart;
   // Standard delivery in Kabul is free; express (+$5) is chosen at checkout.
   const deliveryFee = 0;
@@ -55,8 +57,8 @@ export default function CartPage() {
                   <button className="px-3 py-1.5" onClick={() => updateQuantity(product.id, quantity + 1)}>+</button>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-ink-900">{formatUsd(Number(product.priceUsd) * quantity)}</p>
-                  <p className="text-xs text-ink-400">≈ {formatAfn(Number(product.priceUsd) * quantity, lang)}</p>
+                  <p className="font-semibold text-ink-900">{formatAfn(Number(product.priceUsd) * quantity, lang, afnPerUsd)}</p>
+                  <p className="text-xs text-ink-400">≈ {formatUsd(Number(product.priceUsd) * quantity)}</p>
                 </div>
               </div>
             </div>
@@ -71,8 +73,8 @@ export default function CartPage() {
             <div className="flex justify-between border-t border-ink-100 pt-2 font-bold text-ink-900">
               <span>{tx.total}</span>
               <span className="text-right">
-                {formatUsd(subtotal + deliveryFee)}
-                <span className="block text-xs font-medium text-ink-400">≈ {formatAfn(subtotal + deliveryFee, lang)}</span>
+                {formatAfn(subtotal + deliveryFee, lang, afnPerUsd)}
+                <span className="block text-xs font-medium text-ink-400">≈ {formatUsd(subtotal + deliveryFee)}</span>
               </span>
             </div>
           </div>

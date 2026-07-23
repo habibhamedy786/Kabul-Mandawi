@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { useCart } from "@/context/CartContext";
 import { useLang } from "@/context/LanguageContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import t from "@/lib/i18n/translations";
 import { localizeProduct, localizeCategoryName } from "@/lib/i18n/catalog";
 import { formatUsd, formatAfn } from "@/lib/currency";
@@ -17,6 +18,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { addToCart } = useCart();
   const { lang } = useLang();
+  const { afnPerUsd } = useCurrency();
   const tx = t[lang].products;
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -50,8 +52,8 @@ export default function ProductDetailPage() {
           <h1 className="mt-2 text-3xl font-bold text-ink-900">{loc.name}</h1>
           {loc.unit && <p className="mt-1 text-sm text-ink-400">{loc.unit}</p>}
           <p className="mt-4 flex items-baseline gap-3">
-            <span className="text-2xl font-bold text-ink-900">{formatUsd(Number(product.priceUsd))}</span>
-            <span className="text-base font-medium text-ink-400">≈ {formatAfn(Number(product.priceUsd), lang)}</span>
+            <span className="text-2xl font-bold text-ink-900">{formatAfn(Number(product.priceUsd), lang, afnPerUsd)}</span>
+            <span className="text-base font-medium text-ink-400">≈ {formatUsd(Number(product.priceUsd))}</span>
           </p>
           <p className="mt-4 leading-relaxed text-ink-600">{loc.description}</p>
 

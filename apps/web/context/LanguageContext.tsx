@@ -9,10 +9,12 @@ interface LanguageContextValue {
   dir: "ltr" | "rtl";
 }
 
-const LanguageContext = createContext<LanguageContextValue>({ lang: "en", setLang: () => {}, dir: "ltr" });
+// Default to Dari (fa) — most visitors read Persian; they can switch anytime
+// and their choice is remembered.
+const LanguageContext = createContext<LanguageContextValue>({ lang: "fa", setLang: () => {}, dir: "rtl" });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  const [lang, setLangState] = useState<Lang>("fa");
 
   useEffect(() => {
     const saved = localStorage.getItem("afc_lang") as Lang | null;

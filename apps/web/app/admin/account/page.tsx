@@ -8,12 +8,35 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
 export default function AdminAccountPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
+
+  // ── Profile (name + sign-in email) ──────────────────────────────
+  const [fullName, setFullName] = useState(user?.fullName ?? "");
+  const [email, setEmail] = useState(user?.email ?? "");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMsg, setProfileMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  // ── Password ────────────────────────────────────────────────────
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  async function handleProfileSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setProfileMsg(null);
+    setSavingProfile(true);
+    try {
+      await api.users.updateMe({ fullName, email: email.trim() });
+      await refreshUser();
+      setProfileMsg({ type: "ok", text: "Your details have been updated." });
+    } catch (err) {
+      setProfileMsg({ type: "err", text: err instanceof Error ? err.message : "Could not update your details." });
+    } finally {
+      setSavingProfile(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,6 +62,22 @@ export default function AdminAccountPage() {
         <h2 className="text-lg font-semibold text-ink-900">My Account</h2>
         <p className="text-sm text-ink-500">{user?.fullName} · {user?.email}</p>
       </div>
+
+      <Card>
+        <CardBody>
+          <h3 className="font-semibold text-ink-900">Profile</h3>
+          <p className="mt-1 text-sm text-ink-500">
+            Your sign-in email is the address you use to log in. It doesn&apos;t have to match the
+            address customers see on emails.
+          </p>
+          <form onSubmit={handleProfileSubmit} className="mt-4 max-w-sm space-y-4">
+            <Input label="Full name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            <Input label="Sign-in email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            {profileMsg && <p className={`text-sm ${profileMsg.type === "ok" ? "text-brand-700" : "text-red-600"}`}>{profileMsg.text}</p>}
+            <Button type="submit" disabled={savingProfile}>{savingProfile ? "Saving…" : "Save details"}</Button>
+          </form>
+        </CardBody>
+      </Card>
 
       <Card>
         <CardBody>

@@ -33,11 +33,22 @@ const updateMeSchema = z.object({
   fullName: z.string().min(2).optional(),
   phone: z.string().optional(),
   country: z.string().optional(),
+  email: z.string().email().optional(),
 });
 
 /** PATCH /api/users/me */
 export const updateMe = asyncHandler(async (req: AuthedRequest, res: Response) => {
   const data = updateMeSchema.parse(req.body);
+
+  // Changing the sign-in email: make sure it isn't already taken by someone else.
+  if (data.email) {
+    data.email = data.email.trim();
+    const existing = await prisma.user.findUnique({ where: { email: data.email } });
+    if (existing && existing.id !== req.user!.sub) {
+      throw new AppError("An account with this email already exists.", 409);
+    }
+  }
+
   const user = await prisma.user.update({ where: { id: req.user!.sub }, data });
   res.json(user);
 });

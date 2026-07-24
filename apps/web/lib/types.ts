@@ -78,6 +78,7 @@ export interface DeliveryProof {
   receiverName: string;
   deliveryNotes?: string;
   deliveredAt: string;
+  uploadedBy?: { fullName: string } | null;
 }
 
 export interface Order {
@@ -94,7 +95,22 @@ export interface Order {
   totalUsd: string | number;
   items: OrderItem[];
   deliveryProof?: DeliveryProof | null;
+  assignedDeliveryStaff?: { id: string; fullName: string } | null;
   createdAt: string;
+}
+
+export interface DeliveryStaff {
+  id: string;
+  fullName: string;
+  email: string;
+  role: Role;
+}
+
+export interface DeliveryStat {
+  id: string;
+  fullName: string;
+  assigned: number;
+  delivered: number;
 }
 
 export interface CustomRequest {

@@ -136,10 +136,14 @@ export const api = {
     },
     orders: {
       list: (query: string = "") => apiRequest(`/admin/orders${query}`),
+      deliveryStats: () => apiRequest("/admin/orders/delivery-stats"),
       updateStatus: (id: string, body: unknown) => apiRequest(`/admin/orders/${id}/status`, { method: "PATCH", body }),
       assign: (id: string, deliveryStaffId: string) => apiRequest(`/admin/orders/${id}/assign`, { method: "PATCH", body: { deliveryStaffId } }),
       uploadProof: (id: string, formData: FormData) => apiRequest(`/admin/orders/${id}/delivery-proof`, { method: "POST", body: formData, isFormData: true }),
       uploadSupplierInvoice: (id: string, body: unknown) => apiRequest(`/admin/orders/${id}/supplier-invoice`, { method: "POST", body }),
+    },
+    deliveryStaff: {
+      list: () => apiRequest("/admin/delivery-staff"),
     },
     customRequests: {
       list: (query: string = "") => apiRequest(`/admin/custom-requests${query}`),

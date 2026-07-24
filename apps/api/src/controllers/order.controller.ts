@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/config/prisma";
 import { AuthedRequest } from "@/middleware/auth";
 import { AppError } from "@/middleware/errorHandler";
-import { DeliveryCity, OrderStatus, PaymentStatus, PaymentMethod } from "@prisma/client";
+import { DeliveryCity, OrderStatus, PaymentStatus, PaymentMethod, Role } from "@prisma/client";
 import { createPaymentIntentForOrder } from "@/services/stripe.service";
 import { canTransition } from "@/utils/orderStatus";
 import * as walletService from "@/services/wallet.service";
@@ -188,24 +188,76 @@ export const getOrder = asyncHandler(async (req: AuthedRequest, res: Response) =
 
 /** GET /api/admin/orders — staff list with filters */
 export const adminListOrders = asyncHandler(async (req: AuthedRequest, res: Response) => {
-  const { status, city, page = "1", pageSize = "25" } = req.query as Record<string, string>;
+  const { status, city, deliveryStaffId, page = "1", pageSize = "25" } = req.query as Record<string, string>;
   const take = Number(pageSize);
   const skip = (Number(page) - 1) * take;
 
   const where = {
     ...(status ? { status: status as OrderStatus } : {}),
     ...(city ? { city: city as DeliveryCity } : {}),
+    ...(deliveryStaffId ? { assignedDeliveryStaffId: deliveryStaffId } : {}),
   };
 
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where, take, skip, orderBy: { createdAt: "desc" },
-      include: { items: true, payment: true, walletHold: true, user: { select: { fullName: true, email: true } } },
+      include: {
+        items: true, payment: true, walletHold: true,
+        user: { select: { fullName: true, email: true } },
+        // Who the delivery is assigned to, and who actually completed it (proof upload).
+        assignedDeliveryStaff: { select: { id: true, fullName: true } },
+        deliveryProof: { select: { deliveredAt: true, uploadedBy: { select: { fullName: true } } } },
+      },
     }),
     prisma.order.count({ where }),
   ]);
 
   res.json({ orders, total, page: Number(page), pageSize: take });
+});
+
+/** GET /api/admin/orders/delivery-stats — per-delivery-person counts:
+ *  how many orders are assigned to each, and how many they've delivered/completed. */
+export const adminDeliveryStats = asyncHandler(async (_req: AuthedRequest, res: Response) => {
+  const staff = await prisma.user.findMany({
+    where: { role: { in: [Role.DELIVERY_STAFF, Role.DELIVERY_COORDINATOR] }, isActive: true },
+    select: { id: true, fullName: true },
+    orderBy: { fullName: "asc" },
+  });
+
+  const [assigned, delivered] = await Promise.all([
+    prisma.order.groupBy({
+      by: ["assignedDeliveryStaffId"],
+      _count: { _all: true },
+      where: { assignedDeliveryStaffId: { not: null } },
+    }),
+    prisma.order.groupBy({
+      by: ["assignedDeliveryStaffId"],
+      _count: { _all: true },
+      where: { assignedDeliveryStaffId: { not: null }, status: { in: [OrderStatus.DELIVERED, OrderStatus.COMPLETED] } },
+    }),
+  ]);
+
+  const assignedMap = new Map(assigned.map((a) => [a.assignedDeliveryStaffId, a._count._all]));
+  const deliveredMap = new Map(delivered.map((d) => [d.assignedDeliveryStaffId, d._count._all]));
+
+  const stats = staff.map((s) => ({
+    id: s.id,
+    fullName: s.fullName,
+    assigned: assignedMap.get(s.id) ?? 0,
+    delivered: deliveredMap.get(s.id) ?? 0,
+  }));
+
+  res.json({ stats });
+});
+
+/** GET /api/admin/delivery-staff — active delivery people, for the assign dropdown. */
+export const adminListDeliveryStaff = asyncHandler(async (_req: AuthedRequest, res: Response) => {
+  const staff = await prisma.user.findMany({
+    where: { role: { in: [Role.DELIVERY_STAFF, Role.DELIVERY_COORDINATOR] }, isActive: true },
+    select: { id: true, fullName: true, email: true, role: true },
+    orderBy: { fullName: "asc" },
+  });
+  res.json({ staff });
 });
 
 const statusUpdateSchema = z.object({ status: z.nativeEnum(OrderStatus), note: z.string().optional() });

@@ -92,6 +92,15 @@ const t = {
       detailLoading: "Loading…",
       notFound: "Product not found.",
       priceNote: "Afghani (؋) prices are approximate. Payment is charged in US dollars.",
+      inStock: "In stock",
+      share: "Share",
+      descriptionHeading: "Description",
+      relatedHeading: "You might also like",
+      highlights: [
+        "Free delivery across Kabul — same-day express available",
+        "Wallet Hold — your payment is held safely until delivery is confirmed",
+        "Photo delivery proof on every order",
+      ],
     },
     cart: {
       title: "Your Cart",
@@ -447,6 +456,15 @@ const t = {
       detailLoading: "در حال بارگذاری…",
       notFound: "محصول یافت نشد.",
       priceNote: "قیمت‌های افغانی (؋) تقریبی است. پرداخت به دالر امریکایی انجام می‌شود.",
+      inStock: "موجود",
+      share: "اشتراک‌گذاری",
+      descriptionHeading: "توضیحات",
+      relatedHeading: "محصولات مشابه",
+      highlights: [
+        "تحویل رایگان در سراسر کابل — تحویل فوری همان‌روز موجود است",
+        "Wallet Hold — پرداخت شما تا تأیید تحویل به‌طور امن نگه داشته می‌شود",
+        "اثبات تحویل تصویری برای هر سفارش",
+      ],
     },
     cart: {
       title: "سبد خرید شما",
@@ -802,6 +820,15 @@ const t = {
       detailLoading: "بارول کیږي…",
       notFound: "توکی ونه موندل شو.",
       priceNote: "د افغانۍ (؋) بیې اټکلي دي. تادیه په امریکایي ډالرو کیږي.",
+      inStock: "موجود",
+      share: "شریکول",
+      descriptionHeading: "تفصیلات",
+      relatedHeading: "ورته توکي",
+      highlights: [
+        "په ټول کابل کې وړیا سپارل — هماغه ورځ چټک سپارل شته",
+        "Wallet Hold — ستاسو تادیه تر سپارلو تأیید پورې خوندي ساتل کیږي",
+        "د هر سفارش لپاره د عکس سپارلو ثبوت",
+      ],
     },
     cart: {
       title: "ستاسو سبد",

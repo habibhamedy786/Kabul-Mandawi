@@ -126,7 +126,9 @@ export const api = {
       create: (body: unknown) => apiRequest("/admin/products", { method: "POST", body }),
       update: (id: string, body: unknown) => apiRequest(`/admin/products/${id}`, { method: "PATCH", body }),
       deactivate: (id: string) => apiRequest(`/admin/products/${id}`, { method: "DELETE" }),
-      remove: (id: string) => apiRequest(`/admin/products/${id}/permanent`, { method: "DELETE" }),
+      remove: (id: string, force = false) => apiRequest(`/admin/products/${id}/permanent${force ? "?force=true" : ""}`, { method: "DELETE" }),
+      discountAll: (percent: number) => apiRequest("/admin/products/discount-all", { method: "POST", body: { percent } }),
+      clearDiscounts: () => apiRequest("/admin/products/discount-clear", { method: "POST" }),
     },
     categories: {
       list: () => apiRequest("/categories", { authenticated: false }),

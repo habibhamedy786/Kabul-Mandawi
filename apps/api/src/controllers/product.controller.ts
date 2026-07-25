@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/config/prisma";
 import { AuthedRequest } from "@/middleware/auth";
 import { AppError } from "@/middleware/errorHandler";
-import { DeliveryCity } from "@prisma/client";
+import { DeliveryCity, Role } from "@prisma/client";
 
 const listQuerySchema = z.object({
   category: z.string().optional(),     // category slug
@@ -65,7 +65,7 @@ const productSchema = z.object({
   unitFa: z.string().optional().nullable(),
   unitPs: z.string().optional().nullable(),
   priceUsd: z.number().positive(),
-  compareAtUsd: z.number().positive().optional(),
+  compareAtUsd: z.number().positive().nullable().optional(),
   images: z.array(z.string().url()).default([]),
   categoryId: z.string(),
   availableCities: z.array(z.nativeEnum(DeliveryCity)).default([DeliveryCity.KABUL]),
@@ -99,15 +99,48 @@ export const deactivateProduct = asyncHandler(async (req: AuthedRequest, res: Re
  *  product has never been part of an order (otherwise order history would break;
  *  the admin should deactivate it instead). */
 export const deleteProduct = asyncHandler(async (req: AuthedRequest, res: Response) => {
+  const force = req.query.force === "true";
   const orderedCount = await prisma.orderItem.count({ where: { productId: req.params.id } });
+
   if (orderedCount > 0) {
-    throw new AppError(
-      "This product is part of past orders, so it can't be permanently deleted. Deactivate it instead to hide it from the store.",
-      409,
-    );
+    // Only a Super Admin may force-delete a product that appears in past orders.
+    if (!(force && req.user!.role === Role.SUPER_ADMIN)) {
+      throw new AppError(
+        "This product is part of past orders. Deactivate it instead, or ask a Super Admin to delete it permanently.",
+        409,
+      );
+    }
+    // Detach it from those orders first — the order lines keep their saved name
+    // and price, so order history stays intact — then delete the product.
+    await prisma.orderItem.updateMany({ where: { productId: req.params.id }, data: { productId: null } });
   }
+
   await prisma.product.delete({ where: { id: req.params.id } });
   res.status(204).send();
+});
+
+/** POST /api/admin/products/discount-all (Admin) — put every active product on
+ *  sale by `percent` off. Skips products already on sale so it never compounds. */
+export const discountAll = asyncHandler(async (req: AuthedRequest, res: Response) => {
+  const { percent } = z.object({ percent: z.number().min(1).max(90) }).parse(req.body);
+  const factor = 1 - percent / 100;
+  const updated = await prisma.$executeRaw`
+    UPDATE "Product"
+    SET "compareAtUsd" = "priceUsd",
+        "priceUsd" = ROUND(("priceUsd" * ${factor})::numeric, 2)
+    WHERE "isActive" = true AND "compareAtUsd" IS NULL`;
+  res.json({ updated });
+});
+
+/** POST /api/admin/products/discount-clear (Admin) — end all sales and restore
+ *  each product's original price. */
+export const clearDiscounts = asyncHandler(async (_req: AuthedRequest, res: Response) => {
+  const updated = await prisma.$executeRaw`
+    UPDATE "Product"
+    SET "priceUsd" = "compareAtUsd",
+        "compareAtUsd" = NULL
+    WHERE "compareAtUsd" IS NOT NULL`;
+  res.json({ updated });
 });
 
 /** PATCH /api/admin/products/:id/purchased (Procurement Officer) — mark sourced/purchased */

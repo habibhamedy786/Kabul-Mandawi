@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { Product, Category } from "@/lib/types";
+import { useAuth } from "@/context/AuthContext";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -23,16 +24,22 @@ interface ProductFormState {
   unit: string;
   isFeatured: boolean;
   images: string[];
+  compareAtUsd: string;
 }
 
 const EMPTY_FORM: ProductFormState = {
   sku: "", name: "", description: "", nameFa: "", namePs: "", descriptionFa: "", descriptionPs: "",
-  unitFa: "", unitPs: "", priceUsd: "", categoryId: "", stockQty: "0", unit: "", isFeatured: false, images: [],
+  unitFa: "", unitPs: "", priceUsd: "", categoryId: "", stockQty: "0", unit: "", isFeatured: false, images: [], compareAtUsd: "",
 };
 
 export default function AdminProductsPage() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [discountPct, setDiscountPct] = useState("");
+  const [saleBusy, setSaleBusy] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductFormState>(EMPTY_FORM);
@@ -91,6 +98,7 @@ export default function AdminProductsPage() {
       unitFa: p.unitFa ?? "", unitPs: p.unitPs ?? "",
       categoryId: p.category.id, stockQty: String(p.stockQty), unit: p.unit ?? "",
       isFeatured: p.isFeatured, images: p.images ?? [],
+      compareAtUsd: p.compareAtUsd ? String(p.compareAtUsd) : "",
     });
     setShowForm(true);
   }
@@ -115,6 +123,7 @@ export default function AdminProductsPage() {
       unitFa: form.unitFa || null,
       unitPs: form.unitPs || null,
       priceUsd: Number(form.priceUsd),
+      compareAtUsd: form.compareAtUsd ? Number(form.compareAtUsd) : null,
       categoryId: form.categoryId,
       stockQty: Number(form.stockQty),
       unit: form.unit || undefined,
@@ -147,9 +156,41 @@ export default function AdminProductsPage() {
       await api.admin.products.remove(p.id);
       load();
     } catch (e) {
-      // Most likely: the product is part of past orders, so deletion is blocked.
+      // Blocked because it's in past orders — a Super Admin can force it.
+      if (e instanceof ApiError && e.status === 409 && isSuperAdmin) {
+        if (confirm(`"${p.name}" is in past orders. Delete it anyway? Those orders will still show the item's name and price.`)) {
+          try { await api.admin.products.remove(p.id, true); load(); }
+          catch (e2) { alert(e2 instanceof ApiError ? e2.message : "Could not delete product."); }
+        }
+        return;
+      }
       alert(e instanceof ApiError ? e.message : "Could not delete product.");
     }
+  }
+
+  async function applyStoreSale() {
+    const pct = Number(discountPct);
+    if (!pct || pct < 1 || pct > 90) { alert("Enter a discount between 1 and 90."); return; }
+    if (!confirm(`Put ALL products on sale at ${pct}% off? (Products already on sale are left as they are.)`)) return;
+    setSaleBusy(true);
+    try {
+      await api.admin.products.discountAll(pct);
+      setDiscountPct("");
+      load();
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : "Could not apply the sale.");
+    } finally { setSaleBusy(false); }
+  }
+
+  async function clearStoreSale() {
+    if (!confirm("End ALL sales and restore every product's original price?")) return;
+    setSaleBusy(true);
+    try {
+      await api.admin.products.clearDiscounts();
+      load();
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : "Could not clear the sales.");
+    } finally { setSaleBusy(false); }
   }
 
   return (
@@ -158,6 +199,23 @@ export default function AdminProductsPage() {
         <h2 className="font-semibold text-ink-900">Products ({products.length})</h2>
         <Button size="sm" onClick={showForm ? () => setShowForm(false) : startNew}>{showForm ? "Cancel" : "New product"}</Button>
       </div>
+
+      {/* Store-wide sale — put every product on sale, or end all sales at once. */}
+      {isAdmin && (
+        <Card>
+          <CardBody className="flex flex-wrap items-end gap-3">
+            <div>
+              <p className="text-sm font-semibold text-ink-900">Store-wide sale</p>
+              <p className="text-xs text-ink-500">Put every product on sale at once. Products already on sale stay unchanged.</p>
+            </div>
+            <div className="ml-auto flex items-end gap-2">
+              <Input label="% off all" type="number" min={1} max={90} value={discountPct} onChange={(e) => setDiscountPct(e.target.value)} className="w-24" />
+              <Button size="sm" disabled={saleBusy} onClick={applyStoreSale}>Apply</Button>
+              <Button size="sm" variant="outline" disabled={saleBusy} onClick={clearStoreSale}>Remove all sales</Button>
+            </div>
+          </CardBody>
+        </Card>
+      )}
 
       {showForm && (
         <Card>
@@ -170,6 +228,10 @@ export default function AdminProductsPage() {
               </div>
               <Input label="Price (USD)" type="number" step="0.01" required value={form.priceUsd} onChange={(e) => setForm({ ...form, priceUsd: e.target.value })} />
               <Input label="Stock quantity" type="number" required value={form.stockQty} onChange={(e) => setForm({ ...form, stockQty: e.target.value })} />
+              <div className="sm:col-span-2">
+                <Input label="Sale — original price (USD)" type="number" step="0.01" value={form.compareAtUsd} onChange={(e) => setForm({ ...form, compareAtUsd: e.target.value })} placeholder="optional" />
+                <p className="mt-1 text-xs text-ink-500">To put this product on sale, set the price to the sale price and put the higher original price here — the shop shows a “Sale” badge with the old price crossed out. Leave blank for no sale.</p>
+              </div>
               <Select label="Category" required value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
                 <option value="">Select category…</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}

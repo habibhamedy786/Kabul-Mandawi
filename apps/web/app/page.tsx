@@ -264,7 +264,7 @@ export default function HomePage() {
           <h2 className="font-display mx-auto mt-6 max-w-2xl text-3xl font-semibold text-white">{tx.cta.heading}</h2>
           <p className="mx-auto mt-4 max-w-xl leading-relaxed text-ink-300">{tx.cta.sub}</p>
           <div className="mt-8">
-            <Link href="/custom-request">
+            <Link href="/products">
               <Button size="lg" className="shadow-lg shadow-black/20">{tx.cta.btn}</Button>
             </Link>
           </div>

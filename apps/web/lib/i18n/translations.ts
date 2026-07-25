@@ -24,17 +24,17 @@ const t = {
     home: {
       badge: "Free delivery across Kabul",
       headline: "Kabul's market, at your door",
-      sub: "Fresh groceries, flowers, electronics and gifts from the mandawi — ordered online, paid securely, delivered free across Kabul.",
+      sub: "Everything for your home — fresh groceries, flowers, electronics, clothing and gifts, in stock and delivered free across Kabul.",
       searchPlaceholder: "What do you need today?",
       searchBtn: "Search",
       shopNow: "Shop Now",
       customRequest: "Submit a Custom Request",
       how: {
         heading: "How it works",
-        sub: "Three simple steps from the mandawi to your door.",
+        sub: "Three simple steps to your door.",
         steps: [
-          { title: "Order online", desc: "Browse the shop, or send a custom request for anything you can't find." },
-          { title: "We pick it fresh", desc: "Our team buys from trusted mandawi sellers the same day." },
+          { title: "Order online", desc: "Browse our shelves and add what you need to your cart." },
+          { title: "We pack it fresh", desc: "Your order is picked from our stock, quality-checked, and packed with care." },
           { title: "Delivered with proof", desc: "Free delivery across Kabul — with photo proof, and your payment held until it arrives." },
         ],
       },
@@ -50,9 +50,9 @@ const t = {
         sub: "Everything you need, delivered with care.",
       },
       cta: {
-        heading: "Don't see what you're looking for?",
-        sub: "Submit a custom request — a Samsung Galaxy, school supplies, even a refrigerator or furniture. We'll find it and deliver it.",
-        btn: "Submit a Custom Request",
+        heading: "Everything you need, in one place",
+        sub: "From daily groceries to electronics, clothing and gifts — it's all in stock. Browse the shop and get it delivered free across Kabul.",
+        btn: "Shop now",
       },
       cats: [
         { slug: "groceries", name: "Groceries" },
@@ -388,17 +388,17 @@ const t = {
     home: {
       badge: "تحویل رایگان در سراسر کابل",
       headline: "مندوی کابل، دم دروازه شما",
-      sub: "مواد غذایی تازه، گل، الکترونیک و هدایا از مندوی — سفارش آنلاین، پرداخت امن و تحویل رایگان در سراسر کابل.",
+      sub: "هر آنچه برای خانه‌تان لازم دارید — مواد غذایی تازه، گل، الکترونیک، پوشاک و هدایا، موجود در انبار و با تحویل رایگان در سراسر کابل.",
       searchPlaceholder: "امروز چه نیاز دارید؟",
       searchBtn: "جستجو",
       shopNow: "همین حالا خرید کنید",
       customRequest: "ثبت درخواست ویژه",
       how: {
         heading: "چطور کار می‌کند",
-        sub: "سه قدم ساده از مندوی تا دروازه شما.",
+        sub: "سه قدم ساده تا دروازه شما.",
         steps: [
-          { title: "آنلاین سفارش دهید", desc: "فروشگاه را ببینید یا برای هر چیزی که پیدا نمی‌کنید درخواست ویژه بفرستید." },
-          { title: "ما تازه تهیه می‌کنیم", desc: "تیم ما همان روز از فروشندگان معتبر مندوی خرید می‌کند." },
+          { title: "آنلاین سفارش دهید", desc: "قفسه‌های ما را ببینید و آنچه نیاز دارید به سبد اضافه کنید." },
+          { title: "تازه بسته‌بندی می‌کنیم", desc: "سفارش شما از موجودی ما انتخاب، بررسی کیفیت و با دقت بسته‌بندی می‌شود." },
           { title: "تحویل با اثبات", desc: "تحویل رایگان در سراسر کابل — با اثبات تصویری و نگهداری امن پول شما تا رسیدن سفارش." },
         ],
       },
@@ -414,9 +414,9 @@ const t = {
         sub: "همه چیزی که نیاز دارید، با دقت تحویل داده می‌شود.",
       },
       cta: {
-        heading: "چیزی که دنبالش هستید پیدا نمی‌کنید؟",
-        sub: "یک درخواست ویژه ثبت کنید — گوشی سامسونگ، لوازم مدرسه، حتی یخچال یا مبلمان. ما آن را پیدا و تحویل می‌دهیم.",
-        btn: "ثبت درخواست ویژه",
+        heading: "هر آنچه نیاز دارید، در یک‌جا",
+        sub: "از مواد غذایی روزمره تا الکترونیک، پوشاک و هدایا — همه موجود است. فروشگاه را ببینید و با تحویل رایگان در سراسر کابل تحویل بگیرید.",
+        btn: "همین حالا خرید کنید",
       },
       cats: [
         { slug: "groceries", name: "مواد غذایی" },
@@ -752,17 +752,17 @@ const t = {
     home: {
       badge: "په ټول کابل کې وړیا سپارل",
       headline: "د کابل منډوی، ستاسو تر دروازې",
-      sub: "تازه خوراکي توکي، ګلان، برقي توکي او ډالۍ له منډوي څخه — آنلاین سفارش، خوندي تادیه او په ټول کابل کې وړیا سپارل.",
+      sub: "هر هغه څه چې ستاسو کور ته اړتیا لري — تازه خوراکي توکي، ګلان، برقي توکي، کالي او ډالۍ، په ګدام کې موجود او په ټول کابل کې وړیا سپارل.",
       searchPlaceholder: "نن څه ته اړتیا لرئ؟",
       searchBtn: "لټون",
       shopNow: "همدا اوس پیرود کړئ",
       customRequest: "ځانګړې غوښتنه وسپارئ",
       how: {
         heading: "څنګه کار کوي",
-        sub: "له منډوي څخه ستاسو تر دروازې درې ساده ګامونه.",
+        sub: "ستاسو تر دروازې درې ساده ګامونه.",
         steps: [
-          { title: "آنلاین سفارش ورکړئ", desc: "پلورنځی وګورئ، یا د هر هغه شي لپاره چې نه یې مومئ ځانګړې غوښتنه واستوئ." },
-          { title: "موږ یې تازه اخلو", desc: "زموږ ټیم هماغه ورځ د منډوي له باوري پلورونکو څخه پیري." },
+          { title: "آنلاین سفارش ورکړئ", desc: "زموږ الماریو ته وګورئ او څه چې اړتیا لرئ سبد ته یې ور زیات کړئ." },
+          { title: "تازه یې بسته بندي کوو", desc: "ستاسو سفارش زموږ له ذخیرې څخه غوره کیږي، د کیفیت له پلوه کتل کیږي او په پاملرنې بسته بندي کیږي." },
           { title: "د ثبوت سره سپارل", desc: "په ټول کابل کې وړیا سپارل — د عکسي ثبوت سره، او ستاسو پیسې تر رسیدو پورې خوندي ساتل کیږي." },
         ],
       },
@@ -778,9 +778,9 @@ const t = {
         sub: "هر هغه شی چې اړتیا ورته لرئ، د پاملرنې سره سپارل کیږي.",
       },
       cta: {
-        heading: "هغه شی نه لیدئ چې لټوئ یې؟",
-        sub: "یوه ځانګړې غوښتنه وسپارئ — سامسونګ ګلکسي، د ښوونځي لوازم، حتی فریج یا فرنیچر. موږ به یې ومومو او درسپارو.",
-        btn: "ځانګړې غوښتنه وسپارئ",
+        heading: "هر هغه څه چې ورته اړتیا لرئ، په یو ځای کې",
+        sub: "له ورځنیو خوراکي توکو څخه تر برقي توکو، کالیو او ډالیو پورې — ټول موجود دي. پلورنځی وګورئ او په ټول کابل کې یې وړیا ترلاسه کړئ.",
+        btn: "همدا اوس پیرود کړئ",
       },
       cats: [
         { slug: "groceries", name: "خوراکي توکي" },

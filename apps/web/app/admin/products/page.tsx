@@ -22,12 +22,12 @@ interface ProductFormState {
   stockQty: string;
   unit: string;
   isFeatured: boolean;
-  imageUrl: string;
+  images: string[];
 }
 
 const EMPTY_FORM: ProductFormState = {
   sku: "", name: "", description: "", nameFa: "", namePs: "", descriptionFa: "", descriptionPs: "",
-  unitFa: "", unitPs: "", priceUsd: "", categoryId: "", stockQty: "0", unit: "", isFeatured: false, imageUrl: "",
+  unitFa: "", unitPs: "", priceUsd: "", categoryId: "", stockQty: "0", unit: "", isFeatured: false, images: [],
 };
 
 export default function AdminProductsPage() {
@@ -41,17 +41,34 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  async function handleImageUpload(file: File) {
+  // Upload one or more photos and append them to the product's image list.
+  async function handleImageUpload(files: FileList) {
     setUploading(true);
     setError("");
     try {
-      const { url } = await api.admin.uploadImage(file);
-      setForm((f) => ({ ...f, imageUrl: url }));
+      for (const file of Array.from(files)) {
+        const { url } = await api.admin.uploadImage(file);
+        setForm((f) => ({ ...f, images: [...f.images, url] }));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Image upload failed.");
     } finally {
       setUploading(false);
     }
+  }
+
+  function removeImage(index: number) {
+    setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== index) }));
+  }
+
+  // Move a photo to the front — the first photo is the product's main image.
+  function makeMainImage(index: number) {
+    setForm((f) => {
+      const next = [...f.images];
+      const [img] = next.splice(index, 1);
+      next.unshift(img);
+      return { ...f, images: next };
+    });
   }
 
   function load() {
@@ -73,7 +90,7 @@ export default function AdminProductsPage() {
       nameFa: p.nameFa ?? "", namePs: p.namePs ?? "", descriptionFa: p.descriptionFa ?? "", descriptionPs: p.descriptionPs ?? "",
       unitFa: p.unitFa ?? "", unitPs: p.unitPs ?? "",
       categoryId: p.category.id, stockQty: String(p.stockQty), unit: p.unit ?? "",
-      isFeatured: p.isFeatured, imageUrl: p.images[0] ?? "",
+      isFeatured: p.isFeatured, images: p.images ?? [],
     });
     setShowForm(true);
   }
@@ -102,7 +119,7 @@ export default function AdminProductsPage() {
       stockQty: Number(form.stockQty),
       unit: form.unit || undefined,
       isFeatured: form.isFeatured,
-      images: form.imageUrl ? [form.imageUrl] : [],
+      images: form.images,
     };
     try {
       if (editingId) {
@@ -185,27 +202,36 @@ export default function AdminProductsPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="text-sm font-medium text-ink-800">Product photo</label>
-                <div className="mt-1 flex items-start gap-4">
-                  {form.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={form.imageUrl} alt="preview" className="h-20 w-20 flex-shrink-0 rounded-lg border border-ink-100 object-cover" />
-                  ) : (
-                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg border border-dashed border-ink-200 text-xs text-ink-400">No image</div>
-                  )}
-                  <div className="flex-1 space-y-2">
-                    <label className="inline-flex cursor-pointer items-center rounded-xl border border-ink-200 px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-50">
-                      {uploading ? "Uploading…" : "Upload photo"}
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/heic"
-                        className="hidden"
-                        disabled={uploading}
-                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ""; }}
-                      />
-                    </label>
-                    <Input label="…or paste an image URL" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
-                  </div>
+                <label className="text-sm font-medium text-ink-800">Product photos</label>
+                <p className="mb-2 text-xs text-ink-500">Add up to a few photos. The first photo is the main one shown in the shop — use “Make main” to change it.</p>
+                <div className="flex flex-wrap items-start gap-3">
+                  {form.images.map((img, i) => (
+                    <div key={img} className="group relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img} alt={`photo ${i + 1}`} className="h-24 w-24 rounded-lg border border-ink-100 object-cover" />
+                      {i === 0 && (
+                        <span className="absolute left-1 top-1 rounded bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">Main</span>
+                      )}
+                      <button type="button" onClick={() => removeImage(i)} aria-label="Remove photo"
+                        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-sm font-bold text-white shadow">×</button>
+                      {i !== 0 && (
+                        <button type="button" onClick={() => makeMainImage(i)}
+                          className="absolute inset-x-1 bottom-1 rounded bg-ink-900/75 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">Make main</button>
+                      )}
+                    </div>
+                  ))}
+                  <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-ink-300 text-xs text-ink-500 hover:border-brand-400 hover:text-brand-700">
+                    <span className="text-lg leading-none">＋</span>
+                    {uploading ? "Uploading…" : "Add photo"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/heic"
+                      multiple
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => { if (e.target.files?.length) handleImageUpload(e.target.files); e.target.value = ""; }}
+                    />
+                  </label>
                 </div>
               </div>
               <label className="flex items-center gap-2 text-sm text-ink-700">

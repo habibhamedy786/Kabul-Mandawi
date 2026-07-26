@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { useLang } from "@/context/LanguageContext";
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatAfn, formatUsd } from "@/lib/currency";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
@@ -16,6 +19,8 @@ interface RefundRow {
 
 export default function AdminRefundsPage() {
   const { user } = useAuth();
+  const { lang } = useLang();
+  const { afnPerUsd } = useCurrency();
   const canProcess = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
   const [refunds, setRefunds] = useState<RefundRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +61,7 @@ export default function AdminRefundsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-700">{r.status}</span>
-                <span className="font-semibold text-ink-900">${Number(r.order.totalUsd).toFixed(2)}</span>
+                <span className="text-right font-semibold text-ink-900">{formatAfn(Number(r.order.totalUsd), lang, afnPerUsd)}<span className="block text-xs font-normal text-ink-400">≈ {formatUsd(Number(r.order.totalUsd))}</span></span>
                 {r.status === "PENDING" && canProcess && (
                   <Button size="sm" disabled={busyId === r.id} onClick={() => process(r.order.id)}>Process refund</Button>
                 )}

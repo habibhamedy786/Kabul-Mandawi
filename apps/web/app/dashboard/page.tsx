@@ -7,6 +7,8 @@ import { Order } from "@/lib/types";
 import { OrderStatusBadge, WalletStatusBadge } from "@/components/StatusBadge";
 import { Card, CardBody } from "@/components/ui/Card";
 import { useLang } from "@/context/LanguageContext";
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatAfn, formatUsd } from "@/lib/currency";
 import t from "@/lib/i18n/translations";
 
 const ACTIVE_STATUSES = ["PENDING_PAYMENT", "PAYMENT_RECEIVED", "PROCESSING", "PURCHASED", "OUT_FOR_DELIVERY"];
@@ -14,6 +16,7 @@ const COMPLETED_STATUSES = ["DELIVERED", "COMPLETED"];
 
 export default function DashboardOverviewPage() {
   const { lang } = useLang();
+  const { afnPerUsd } = useCurrency();
   const tx = t[lang].dashboard;
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +56,7 @@ export default function DashboardOverviewPage() {
                   <OrderStatusBadge status={o.status} />
                   <WalletStatusBadge status={o.walletStatus} />
                 </div>
-                <p className="font-semibold text-ink-900">${Number(o.totalUsd).toFixed(2)}</p>
+                <p className="text-right font-semibold text-ink-900">{formatAfn(Number(o.totalUsd), lang, afnPerUsd)}<span className="block text-xs font-normal text-ink-400">≈ {formatUsd(Number(o.totalUsd))}</span></p>
               </div>
             ))}
             {orders.length === 0 && <p className="text-ink-400">{tx.noOrders} <Link href="/products" className="text-brand-700 underline">{tx.startShopping}</Link>.</p>}

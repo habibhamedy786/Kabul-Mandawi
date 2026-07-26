@@ -7,10 +7,13 @@ import { Order } from "@/lib/types";
 import { OrderStatusBadge, WalletStatusBadge } from "@/components/StatusBadge";
 import { Card, CardBody } from "@/components/ui/Card";
 import { useLang } from "@/context/LanguageContext";
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatAfn, formatUsd } from "@/lib/currency";
 import t from "@/lib/i18n/translations";
 
 export default function MyOrdersPage() {
   const { lang } = useLang();
+  const { afnPerUsd } = useCurrency();
   const tx = t[lang].dashboard;
   const [orders, setOrders] = useState<Order[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -36,7 +39,10 @@ export default function MyOrdersPage() {
               <div className="flex items-center gap-2">
                 <OrderStatusBadge status={o.status} />
                 <WalletStatusBadge status={o.walletStatus} />
-                <span className="font-semibold text-ink-900">${Number(o.totalUsd).toFixed(2)}</span>
+                <div className="text-right">
+                  <span className="block font-semibold text-ink-900">{formatAfn(Number(o.totalUsd), lang, afnPerUsd)}</span>
+                  <span className="block text-xs text-ink-400">≈ {formatUsd(Number(o.totalUsd))}</span>
+                </div>
               </div>
             </button>
 
@@ -48,7 +54,7 @@ export default function MyOrdersPage() {
                     {o.items.map((i) => (
                       <li key={i.id} className="flex justify-between">
                         <span>{i.nameSnapshot} × {i.quantity}</span>
-                        <span>${Number(i.lineTotalUsd).toFixed(2)}</span>
+                        <span>{formatAfn(Number(i.lineTotalUsd), lang, afnPerUsd)}</span>
                       </li>
                     ))}
                   </ul>

@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { useLang } from "@/context/LanguageContext";
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatAfn, formatUsd } from "@/lib/currency";
 import { Order, OrderStatus, DeliveryStaff, DeliveryStat } from "@/lib/types";
 import { OrderStatusBadge, WalletStatusBadge } from "@/components/StatusBadge";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -36,6 +39,8 @@ const QUICK_FILTERS: { label: string; value: string }[] = [
 
 export default function AdminOrdersPage() {
   const { user } = useAuth();
+  const { lang } = useLang();
+  const { afnPerUsd } = useCurrency();
   const canAssign = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN"
     || user?.role === "DELIVERY_COORDINATOR" || user?.role === "OPERATIONS_MANAGER";
 
@@ -209,7 +214,10 @@ export default function AdminOrdersPage() {
                 <div className="flex items-center gap-2">
                   <OrderStatusBadge status={o.status} />
                   <WalletStatusBadge status={o.walletStatus} />
-                  <span className="font-semibold text-ink-900">${Number(o.totalUsd).toFixed(2)}</span>
+                  <div className="text-right">
+                    <span className="block font-semibold text-ink-900">{formatAfn(Number(o.totalUsd), lang, afnPerUsd)}</span>
+                    <span className="block text-xs text-ink-400">≈ {formatUsd(Number(o.totalUsd))}</span>
+                  </div>
                 </div>
               </button>
 
@@ -221,7 +229,7 @@ export default function AdminOrdersPage() {
                       {o.items.map((i) => (
                         <li key={i.id} className="flex justify-between">
                           <span>{i.nameSnapshot} × {i.quantity}</span>
-                          <span>${Number(i.lineTotalUsd).toFixed(2)}</span>
+                          <span>{formatAfn(Number(i.lineTotalUsd), lang, afnPerUsd)}</span>
                         </li>
                       ))}
                     </ul>

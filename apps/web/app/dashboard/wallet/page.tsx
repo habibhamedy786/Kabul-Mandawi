@@ -6,6 +6,8 @@ import { Order } from "@/lib/types";
 import { OrderStatusBadge, WalletStatusBadge } from "@/components/StatusBadge";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { useLang } from "@/context/LanguageContext";
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatAfn, formatUsd } from "@/lib/currency";
 import t from "@/lib/i18n/translations";
 
 interface WalletOverview {
@@ -17,6 +19,7 @@ interface WalletOverview {
 
 export default function WalletPage() {
   const { lang } = useLang();
+  const { afnPerUsd } = useCurrency();
   const tx = t[lang].dashboard.wallet;
   const [data, setData] = useState<WalletOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +48,7 @@ export default function WalletPage() {
             <div key={o.id} className="flex items-center justify-between rounded-xl border border-ink-100 p-3 text-sm">
               <span className="font-medium text-ink-900">{o.orderNumber}</span>
               <WalletStatusBadge status={o.walletStatus} />
-              <span className="font-semibold text-ink-900">${Number(o.totalUsd).toFixed(2)}</span>
+              <span className="text-right font-semibold text-ink-900">{formatAfn(Number(o.totalUsd), lang, afnPerUsd)}<span className="block text-xs font-normal text-ink-400">≈ {formatUsd(Number(o.totalUsd))}</span></span>
             </div>
           ))}
         </CardBody>
@@ -59,7 +62,7 @@ export default function WalletPage() {
             <div key={o.id} className="flex items-center justify-between rounded-xl border border-ink-100 p-3 text-sm">
               <span className="font-medium text-ink-900">{o.orderNumber}</span>
               <OrderStatusBadge status={o.status} />
-              <span className="font-semibold text-ink-900">${Number(o.totalUsd).toFixed(2)}</span>
+              <span className="text-right font-semibold text-ink-900">{formatAfn(Number(o.totalUsd), lang, afnPerUsd)}<span className="block text-xs font-normal text-ink-400">≈ {formatUsd(Number(o.totalUsd))}</span></span>
             </div>
           ))}
         </CardBody>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Product } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
+import { Watermark } from "@/components/Watermark";
 import { useCart } from "@/context/CartContext";
 import { useLang } from "@/context/LanguageContext";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -29,7 +30,10 @@ export function ProductCard({ product }: { product: Product }) {
     <div className="group flex flex-col overflow-hidden rounded-xl border border-ink-900/10 bg-white transition-shadow hover:shadow-md">
       <Link href={`/products/${product.id}`} className="relative block aspect-square overflow-hidden border-b border-ink-900/5 bg-paper">
         {image ? (
-          <Image src={image} alt={loc.name} width={400} height={400} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          <>
+            <Image src={image} alt={loc.name} width={400} height={400} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <Watermark />
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center text-ink-300">
             <span className="text-sm">{catName}</span>

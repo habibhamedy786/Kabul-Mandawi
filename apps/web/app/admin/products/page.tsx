@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { Product, Category } from "@/lib/types";
 import { useAuth } from "@/context/AuthContext";
+import { useCurrency } from "@/context/CurrencyContext";
+import { parseCsv, categoryDisplayName, slugify } from "@/lib/csvImport";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -34,6 +36,7 @@ const EMPTY_FORM: ProductFormState = {
 
 export default function AdminProductsPage() {
   const { user } = useAuth();
+  const { afnPerUsd } = useCurrency(); // live AFN-per-USD, for the price helper
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
   const [products, setProducts] = useState<Product[]>([]);
@@ -47,6 +50,8 @@ export default function AdminProductsPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ created: number; failed: { sku: string; error: string }[] } | null>(null);
 
   // Upload one or more photos and append them to the product's image list.
   async function handleImageUpload(files: FileList) {
@@ -89,6 +94,84 @@ export default function AdminProductsPage() {
   }
 
   useEffect(() => { load(); }, []);
+
+  // Bulk-import products from a CSV (SKU, names, Dari/Pashto descriptions,
+  // prices, category). Missing categories are created automatically. USD is the
+  // stored base price; if a row only has an AFN price, it's converted at today's rate.
+  async function handleImportCsv(file: File) {
+    setImporting(true); setImportResult(null); setError("");
+    try {
+      const rows = parseCsv(await file.text());
+      if (rows.length < 2) { setError("That CSV looks empty."); return; }
+
+      const header = rows[0].map((h) => h.trim().toLowerCase());
+      const col = (name: string) => header.indexOf(name.toLowerCase());
+      const idx = {
+        sku: col("sku"), nameEn: col("name (english)"), nameFa: col("name (dari)"),
+        category: col("category"), descEn: col("description (english)"),
+        descFa: col("description (dari)"), descPs: col("description (pashto)"),
+        priceUsd: col("price usd"), priceAfn: col("price afn"),
+        image: col("image"), stock: col("stock"), unit: col("unit"),
+      };
+      if (idx.sku < 0 || idx.nameEn < 0) {
+        setError('CSV must have at least "SKU" and "Name (English)" columns.'); return;
+      }
+
+      // Category name (lowercased) → id, seeded from existing categories.
+      const catMap = new Map<string, string>();
+      categories.forEach((c) => catMap.set(c.name.trim().toLowerCase(), c.id));
+      async function resolveCategory(raw: string): Promise<string> {
+        const display = categoryDisplayName(raw) || "Uncategorized";
+        const key = display.toLowerCase();
+        const existing = catMap.get(key);
+        if (existing) return existing;
+        const created = (await api.admin.categories.create({ name: display, slug: slugify(display) })) as { id: string };
+        catMap.set(key, created.id);
+        return created.id;
+      }
+
+      const get = (r: string[], i: number) => (i >= 0 ? (r[i] ?? "").trim() : "");
+      const failed: { sku: string; error: string }[] = [];
+      let created = 0;
+
+      for (const r of rows.slice(1)) {
+        const sku = get(r, idx.sku);
+        const name = get(r, idx.nameEn);
+        if (!sku || !name) continue;
+        try {
+          const usd = Number(get(r, idx.priceUsd));
+          const afn = Number(get(r, idx.priceAfn));
+          const priceUsd = usd > 0 ? usd : afn > 0 ? Number((afn / afnPerUsd).toFixed(2)) : 0;
+          if (!(priceUsd > 0)) throw new Error("missing or invalid price");
+
+          const img = get(r, idx.image);
+          const categoryId = await resolveCategory(get(r, idx.category));
+
+          await api.admin.products.create({
+            sku, name,
+            description: get(r, idx.descEn) || name, // English description is required
+            nameFa: get(r, idx.nameFa) || null,
+            descriptionFa: get(r, idx.descFa) || null,
+            descriptionPs: get(r, idx.descPs) || null,
+            priceUsd, categoryId,
+            stockQty: Number(get(r, idx.stock)) || 0,
+            unit: get(r, idx.unit) || undefined,
+            images: /^https?:\/\//i.test(img) ? [img] : [],
+          });
+          created++;
+        } catch (e) {
+          failed.push({ sku, error: e instanceof ApiError ? e.message : e instanceof Error ? e.message : "failed" });
+        }
+      }
+
+      setImportResult({ created, failed });
+      load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Import failed.");
+    } finally {
+      setImporting(false);
+    }
+  }
 
   function startEdit(p: Product) {
     setEditingId(p.id);
@@ -195,10 +278,43 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-semibold text-ink-900">Products ({products.length})</h2>
-        <Button size="sm" onClick={showForm ? () => setShowForm(false) : startNew}>{showForm ? "Cancel" : "New product"}</Button>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <label className={`inline-flex cursor-pointer items-center rounded-lg border border-ink-300 px-3 py-1.5 text-sm font-medium text-ink-700 hover:bg-ink-50 ${importing ? "pointer-events-none opacity-60" : ""}`}>
+              {importing ? "Importing…" : "Import CSV"}
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                disabled={importing}
+                onChange={(e) => { if (e.target.files?.[0]) handleImportCsv(e.target.files[0]); e.target.value = ""; }}
+              />
+            </label>
+          )}
+          <Button size="sm" onClick={showForm ? () => setShowForm(false) : startNew}>{showForm ? "Cancel" : "New product"}</Button>
+        </div>
       </div>
+
+      {importResult && (
+        <Card>
+          <CardBody className="text-sm">
+            <div className="flex items-center justify-between">
+              <p className="font-semibold text-green-700">✓ Imported {importResult.created} product(s).</p>
+              <button className="text-xs text-ink-400 hover:text-ink-700" onClick={() => setImportResult(null)}>Dismiss</button>
+            </div>
+            {importResult.failed.length > 0 && (
+              <div className="mt-2">
+                <p className="font-semibold text-red-600">{importResult.failed.length} row(s) skipped:</p>
+                <ul className="mt-1 list-disc pl-5 text-ink-600">
+                  {importResult.failed.map((f, i) => <li key={i}>{f.sku || "(no SKU)"} — {f.error}</li>)}
+                </ul>
+              </div>
+            )}
+          </CardBody>
+        </Card>
+      )}
 
       {/* Store-wide sale — put every product on sale, or end all sales at once. */}
       {isAdmin && (
@@ -226,11 +342,50 @@ export default function AdminProductsPage() {
               <div className="sm:col-span-2">
                 <Textarea label="Description" required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
-              <Input label="Price (USD)" type="number" step="0.01" required value={form.priceUsd} onChange={(e) => setForm({ ...form, priceUsd: e.target.value })} />
+              <div className="sm:col-span-2 rounded-xl bg-brand-50 p-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Input
+                    label="Price in AFN (؋) — enter this"
+                    type="number" step="1" min={0}
+                    value={form.priceUsd ? String(Math.round(Number(form.priceUsd) * afnPerUsd)) : ""}
+                    onChange={(e) => {
+                      const afn = Number(e.target.value);
+                      setForm({ ...form, priceUsd: afn > 0 ? (afn / afnPerUsd).toFixed(2) : "" });
+                    }}
+                  />
+                  <Input
+                    label="Price (USD) — base price, saved"
+                    type="number" step="0.01" required
+                    value={form.priceUsd}
+                    onChange={(e) => setForm({ ...form, priceUsd: e.target.value })}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-ink-500">
+                  Today&apos;s rate: ؋{afnPerUsd.toFixed(2)} = $1. Type the price in Afghani and the USD base fills in automatically. USD is stored as the base price; the Afghani shown to shoppers updates on its own as the daily rate changes.
+                </p>
+              </div>
               <Input label="Stock quantity" type="number" required value={form.stockQty} onChange={(e) => setForm({ ...form, stockQty: e.target.value })} />
               <div className="sm:col-span-2">
-                <Input label="Sale — original price (USD)" type="number" step="0.01" value={form.compareAtUsd} onChange={(e) => setForm({ ...form, compareAtUsd: e.target.value })} placeholder="optional" />
-                <p className="mt-1 text-xs text-ink-500">To put this product on sale, set the price to the sale price and put the higher original price here — the shop shows a “Sale” badge with the old price crossed out. Leave blank for no sale.</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Input
+                    label="Sale — original price in AFN (؋)"
+                    type="number" step="1" min={0}
+                    value={form.compareAtUsd ? String(Math.round(Number(form.compareAtUsd) * afnPerUsd)) : ""}
+                    onChange={(e) => {
+                      const afn = Number(e.target.value);
+                      setForm({ ...form, compareAtUsd: afn > 0 ? (afn / afnPerUsd).toFixed(2) : "" });
+                    }}
+                    placeholder="optional"
+                  />
+                  <Input
+                    label="Original price (USD) — base"
+                    type="number" step="0.01"
+                    value={form.compareAtUsd}
+                    onChange={(e) => setForm({ ...form, compareAtUsd: e.target.value })}
+                    placeholder="optional"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-ink-500">To put this product on sale, set the <strong>Price</strong> above to the sale price and enter the higher original price here — the shop shows a “Sale” badge with the old price crossed out. Leave blank for no sale.</p>
               </div>
               <Select label="Category" required value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
                 <option value="">Select category…</option>

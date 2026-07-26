@@ -8,6 +8,7 @@ import { Product } from "@/lib/types";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/ProductCard";
+import { Watermark } from "@/components/Watermark";
 import { useCart } from "@/context/CartContext";
 import { useLang } from "@/context/LanguageContext";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -96,7 +97,10 @@ export default function ProductDetailPage() {
         <div>
           <div className="relative aspect-square overflow-hidden rounded-2xl border border-ink-100 bg-ink-50">
             {mainImage ? (
-              <Image src={mainImage} alt={loc.name} width={700} height={700} className="h-full w-full object-cover" />
+              <>
+                <Image src={mainImage} alt={loc.name} width={700} height={700} className="h-full w-full object-cover" />
+                <Watermark />
+              </>
             ) : (
               <div className="flex h-full w-full items-center justify-center text-ink-300">{catName}</div>
             )}

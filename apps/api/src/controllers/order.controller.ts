@@ -25,8 +25,10 @@ const checkoutSchema = z.object({
   city: z.nativeEnum(DeliveryCity),
   deliveryAddress: z.string().min(5),
   deliveryNote: z.string().optional(),
-  // ONLINE = card via the payment gateway; COD = receiver pays cash on delivery.
-  paymentMethod: z.enum(["ONLINE", "COD"]).default("ONLINE"),
+  // ONLINE = card via the payment gateway; COD = receiver pays cash on delivery;
+  // CRYPTO = customer sends USDT and staff confirm it on-chain.
+  paymentMethod: z.enum(["ONLINE", "COD", "CRYPTO"]).default("ONLINE"),
+  cryptoTxHash: z.string().optional(),
   // STANDARD = free next-day; EXPRESS = same-day for a $5 fee.
   deliveryType: z.enum(["STANDARD", "EXPRESS"]).default("STANDARD"),
 });
@@ -64,13 +66,16 @@ export const createOrder = asyncHandler(async (req: AuthedRequest, res: Response
   const total = subtotal + deliveryFee;
   const user = await prisma.user.findUniqueOrThrow({ where: { id: req.user!.sub } });
   const isCod = data.paymentMethod === "COD";
+  const isCrypto = data.paymentMethod === "CRYPTO";
 
-  // COD orders skip the payment gateway entirely: they start in PROCESSING
-  // (staff can act immediately) and the receiver pays cash at the door.
+  // COD starts in PROCESSING (staff act immediately, cash paid at the door).
+  // CRYPTO stays PENDING_PAYMENT until staff confirm the USDT arrived on-chain.
   const initialStatus = isCod ? OrderStatus.PROCESSING : OrderStatus.PENDING_PAYMENT;
   const initialNote = isCod
     ? "Cash-on-delivery order placed. Receiver pays on delivery."
-    : "Order created, awaiting payment.";
+    : isCrypto
+      ? "USDT payment submitted — awaiting on-chain confirmation."
+      : "Order created, awaiting payment.";
 
   const order = await prisma.order.create({
     data: {
@@ -123,6 +128,35 @@ export const createOrder = asyncHandler(async (req: AuthedRequest, res: Response
     }
 
     res.status(201).json({ order, cod: true });
+    return;
+  }
+
+  if (isCrypto) {
+    await prisma.payment.create({
+      data: {
+        orderId: order.id,
+        method: PaymentMethod.CRYPTO_USDT,
+        amountUsd: total,
+        status: PaymentStatus.PENDING, // marked PAID by staff once USDT is confirmed on-chain
+        cryptoTxHash: data.cryptoTxHash ?? null,
+      },
+    });
+
+    try {
+      const mail = orderConfirmationEmail({
+        orderNumber: order.orderNumber,
+        totalUsd: total,
+        receiverName: order.receiverName,
+        city: order.city,
+        items: order.items.map((i) => ({ name: i.nameSnapshot, quantity: i.quantity, lineTotalUsd: Number(i.lineTotalUsd) })),
+        cod: true,
+      });
+      await sendEmail({ to: user.email, ...mail });
+    } catch (err) {
+      console.error("Crypto order email failed:", err);
+    }
+
+    res.status(201).json({ order, crypto: true });
     return;
   }
 
@@ -258,6 +292,27 @@ export const adminListDeliveryStaff = asyncHandler(async (_req: AuthedRequest, r
     orderBy: { fullName: "asc" },
   });
   res.json({ staff });
+});
+
+/** PATCH /api/admin/orders/:id/confirm-crypto — staff confirm the customer's
+ *  USDT payment arrived on-chain: mark it paid and move the order to PROCESSING. */
+export const adminConfirmCryptoPayment = asyncHandler(async (req: AuthedRequest, res: Response) => {
+  const order = await prisma.order.findUnique({ where: { id: req.params.id }, include: { payment: true } });
+  if (!order) throw new AppError("Order not found.", 404);
+  if (!order.payment || order.payment.method !== PaymentMethod.CRYPTO_USDT) {
+    throw new AppError("This order is not a USDT payment.", 400);
+  }
+  if (order.payment.status === PaymentStatus.PAID) {
+    throw new AppError("This payment is already confirmed.", 409);
+  }
+
+  await prisma.$transaction([
+    prisma.payment.update({ where: { orderId: order.id }, data: { status: PaymentStatus.PAID, paidAt: new Date() } }),
+    prisma.order.update({ where: { id: order.id }, data: { status: OrderStatus.PROCESSING } }),
+    prisma.orderStatusHistory.create({ data: { orderId: order.id, status: OrderStatus.PROCESSING, note: "USDT payment confirmed by staff." } }),
+  ]);
+
+  res.json({ success: true });
 });
 
 const statusUpdateSchema = z.object({ status: z.nativeEnum(OrderStatus), note: z.string().optional() });

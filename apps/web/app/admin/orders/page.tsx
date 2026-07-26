@@ -87,6 +87,19 @@ export default function AdminOrdersPage() {
     }
   }
 
+  async function confirmCrypto(id: string) {
+    if (!confirm("Confirm the USDT payment arrived in your wallet? This marks the order paid and moves it to Processing.")) return;
+    setBusyId(id); setError("");
+    try {
+      await api.admin.orders.confirmCrypto(id);
+      load();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not confirm payment.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -218,6 +231,21 @@ export default function AdminOrdersPage() {
                     <p className="text-sm font-medium text-ink-700">Receiver</p>
                     <p className="text-sm text-ink-600">{o.receiverName} · {o.receiverPhone} · {o.deliveryAddress}</p>
                   </div>
+
+                  {/* USDT payment — show the transaction id and let staff confirm it */}
+                  {o.payment?.method === "CRYPTO_USDT" && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                      <p className="text-sm font-medium text-amber-900">
+                        USDT payment {o.payment.status === "PAID" ? "— confirmed ✓" : "— awaiting confirmation"}
+                      </p>
+                      {o.payment.cryptoTxHash && (
+                        <p className="mt-1 break-all text-xs text-amber-800">Transaction ID: <span dir="ltr">{o.payment.cryptoTxHash}</span></p>
+                      )}
+                      {o.payment.status !== "PAID" && (
+                        <Button size="sm" className="mt-3" disabled={busyId === o.id} onClick={() => confirmCrypto(o.id)}>Confirm USDT received</Button>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap items-end gap-2">
                     <Select

@@ -4,7 +4,7 @@ import { authorize, ROLES } from "@/middleware/rbac";
 import {
   createOrder, listMyOrders, getOrder,
   adminListOrders, adminUpdateOrderStatus, assignDeliveryStaff, listMyAssignments,
-  adminDeliveryStats, adminListDeliveryStaff,
+  adminDeliveryStats, adminListDeliveryStaff, adminConfirmCryptoPayment,
 } from "@/controllers/order.controller";
 
 const router = Router();
@@ -17,6 +17,7 @@ adminOrderRouter.get("/", authenticate, authorize(...ROLES.ANY_STAFF), adminList
 adminOrderRouter.get("/delivery-stats", authenticate, authorize(...ROLES.DELIVERY_ASSIGN), adminDeliveryStats);
 adminOrderRouter.patch("/:id/status", authenticate, authorize(...ROLES.ANY_STAFF), adminUpdateOrderStatus);
 adminOrderRouter.patch("/:id/assign", authenticate, authorize(...ROLES.DELIVERY_ASSIGN), assignDeliveryStaff);
+adminOrderRouter.patch("/:id/confirm-crypto", authenticate, authorize(...ROLES.FINANCE), adminConfirmCryptoPayment);
 
 // Active delivery people, for the assign dropdown & performance view.
 export const adminDeliveryStaffRouter = Router();

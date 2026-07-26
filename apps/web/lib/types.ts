@@ -96,6 +96,7 @@ export interface Order {
   items: OrderItem[];
   deliveryProof?: DeliveryProof | null;
   assignedDeliveryStaff?: { id: string; fullName: string } | null;
+  payment?: { method: string; status: string; cryptoTxHash?: string | null } | null;
   createdAt: string;
 }
 

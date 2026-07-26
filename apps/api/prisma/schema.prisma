@@ -65,6 +65,7 @@ enum PaymentMethod {
   GOOGLE_PAY
   CARD_OTHER
   CASH_ON_DELIVERY
+  CRYPTO_USDT
 }
 
 enum CustomRequestStatus {
@@ -337,6 +338,7 @@ model Payment {
   method            PaymentMethod @default(CARD_OTHER)
   amountUsd         Decimal       @db.Decimal(10, 2)
   status            PaymentStatus @default(PENDING)
+  cryptoTxHash      String?       // customer-submitted USDT transaction id, verified by staff
   paidAt            DateTime?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt

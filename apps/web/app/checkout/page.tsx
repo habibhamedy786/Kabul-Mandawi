@@ -15,6 +15,11 @@ import t from "@/lib/i18n/translations";
 import { localizeProduct } from "@/lib/i18n/catalog";
 import { formatUsd, formatAfn } from "@/lib/currency";
 
+// Your USDT receiving address + network — set NEXT_PUBLIC_USDT_ADDRESS in Vercel.
+// If it's empty, the USDT option is hidden automatically.
+const USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_ADDRESS ?? "";
+const USDT_NETWORK = process.env.NEXT_PUBLIC_USDT_NETWORK ?? "TRC-20 (TRON)";
+
 const CITIES: { value: DeliveryCity; label: string; available: boolean }[] = [
   { value: "KABUL", label: "Kabul", available: true },
   { value: "HERAT", label: "Herat", available: false },
@@ -40,12 +45,16 @@ export default function CheckoutPage() {
 
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
-  const [payMethod, setPayMethod] = useState<"ONLINE" | "COD">("ONLINE");
+  const [payMethod, setPayMethod] = useState<"ONLINE" | "COD" | "CRYPTO">("ONLINE");
   const [deliveryType, setDeliveryType] = useState<"STANDARD" | "EXPRESS">("STANDARD");
   const [codPlaced, setCodPlaced] = useState(false);
+  const [cryptoPlaced, setCryptoPlaced] = useState(false);
+  const [cryptoTxHash, setCryptoTxHash] = useState("");
+  const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const deliveryFee = deliveryType === "EXPRESS" ? 5 : 0; // standard delivery in Kabul is free
+  const orderTotal = subtotal + deliveryFee;
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/login?redirect=/checkout");
@@ -74,11 +83,15 @@ export default function CheckoutPage() {
         items: lines.map((l) => ({ productId: l.product.id, quantity: l.quantity })),
         receiverName, receiverPhone, city, deliveryAddress, deliveryNote,
         paymentMethod: payMethod, deliveryType,
-      }) as { order: { orderNumber: string }; clientSecret?: string; cod?: boolean };
+        ...(payMethod === "CRYPTO" ? { cryptoTxHash } : {}),
+      }) as { order: { orderNumber: string }; clientSecret?: string; cod?: boolean; crypto?: boolean };
       setOrderNumber(res.order.orderNumber);
       if (res.cod) {
         clearCart();
         setCodPlaced(true);
+      } else if (res.crypto) {
+        clearCart();
+        setCryptoPlaced(true);
       } else {
         setClientSecret(res.clientSecret ?? null);
       }
@@ -95,6 +108,17 @@ export default function CheckoutPage() {
         <h1 className="text-2xl font-bold text-ink-900">{tx.codPlacedHeading}</h1>
         <p className="mt-2 text-ink-500">{orderNumber}</p>
         <p className="mt-3 text-ink-600">{tx.codPlacedSub}</p>
+        <Button className="mt-6" size="lg" onClick={() => router.push("/dashboard/orders")}>{tx.viewOrders}</Button>
+      </div>
+    );
+  }
+
+  if (cryptoPlaced) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-20 text-center sm:px-6">
+        <h1 className="text-2xl font-bold text-ink-900">{tx.cryptoPlacedHeading}</h1>
+        <p className="mt-2 text-ink-500">{orderNumber}</p>
+        <p className="mt-3 text-ink-600">{tx.cryptoPlacedSub}</p>
         <Button className="mt-6" size="lg" onClick={() => router.push("/dashboard/orders")}>{tx.viewOrders}</Button>
       </div>
     );
@@ -196,12 +220,49 @@ export default function CheckoutPage() {
                   <span className="block text-sm text-ink-500">{tx.payCodDesc}</span>
                 </span>
               </label>
+              {USDT_ADDRESS && (
+                <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${payMethod === "CRYPTO" ? "border-brand-600 bg-brand-50" : "border-ink-200"}`}>
+                  <input type="radio" name="payMethod" className="mt-1 accent-brand-600" checked={payMethod === "CRYPTO"} onChange={() => setPayMethod("CRYPTO")} />
+                  <span>
+                    <span className="block font-medium text-ink-900">{tx.payCrypto}</span>
+                    <span className="block text-sm text-ink-500">{tx.payCryptoDesc}</span>
+                  </span>
+                </label>
+              )}
             </div>
+
+            {/* USDT payment details */}
+            {payMethod === "CRYPTO" && USDT_ADDRESS && (
+              <div className="mt-4 space-y-3 rounded-xl bg-ink-50 p-4">
+                <p className="text-sm text-ink-600">{tx.cryptoInstructions}</p>
+
+                <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  {tx.cryptoNetworkWarning}
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">{tx.cryptoAmountLabel}</p>
+                  <p className="text-xl font-bold text-ink-900">{orderTotal.toFixed(2)} USDT</p>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">{tx.cryptoAddressLabel} · {USDT_NETWORK}</p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <code dir="ltr" className="flex-1 break-all rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900">{USDT_ADDRESS}</code>
+                    <Button type="button" variant="outline" size="sm" onClick={() => { navigator.clipboard?.writeText(USDT_ADDRESS); setCopied(true); setTimeout(() => setCopied(false), 2000); }}>
+                      {copied ? tx.copied : tx.copyBtn}
+                    </Button>
+                  </div>
+                </div>
+
+                <Input label={tx.cryptoTxLabel} value={cryptoTxHash} onChange={(e) => setCryptoTxHash(e.target.value)} placeholder={tx.cryptoTxPlaceholder} dir="ltr" />
+              </div>
+            )}
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-            {submitting ? tx.preparing : payMethod === "COD" ? tx.placeCodOrder : tx.continue}
+          <Button type="submit" size="lg" className="w-full" disabled={submitting || (payMethod === "CRYPTO" && !cryptoTxHash.trim())}>
+            {submitting ? tx.preparing : payMethod === "COD" ? tx.placeCodOrder : payMethod === "CRYPTO" ? tx.placeCryptoOrder : tx.continue}
           </Button>
         </form>
 

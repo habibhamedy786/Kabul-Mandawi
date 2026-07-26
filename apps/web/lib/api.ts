@@ -141,6 +141,7 @@ export const api = {
       deliveryStats: () => apiRequest("/admin/orders/delivery-stats"),
       updateStatus: (id: string, body: unknown) => apiRequest(`/admin/orders/${id}/status`, { method: "PATCH", body }),
       assign: (id: string, deliveryStaffId: string) => apiRequest(`/admin/orders/${id}/assign`, { method: "PATCH", body: { deliveryStaffId } }),
+      confirmCrypto: (id: string) => apiRequest(`/admin/orders/${id}/confirm-crypto`, { method: "PATCH" }),
       uploadProof: (id: string, formData: FormData) => apiRequest(`/admin/orders/${id}/delivery-proof`, { method: "POST", body: formData, isFormData: true }),
       uploadSupplierInvoice: (id: string, body: unknown) => apiRequest(`/admin/orders/${id}/supplier-invoice`, { method: "POST", body }),
     },

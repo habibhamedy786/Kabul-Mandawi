@@ -95,10 +95,10 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
         {/* Gallery */}
         <div>
-          <div className="relative aspect-square overflow-hidden rounded-2xl border border-ink-100 bg-ink-50">
+          <div className="relative aspect-square overflow-hidden rounded-2xl border border-ink-100 bg-white">
             {mainImage ? (
               <>
-                <Image src={mainImage} alt={loc.name} width={700} height={700} className="h-full w-full object-cover" />
+                <Image src={mainImage} alt={loc.name} width={700} height={700} className="h-full w-full object-contain p-6 sm:p-8" />
                 <Watermark />
               </>
             ) : (
@@ -116,9 +116,9 @@ export default function ProductDetailPage() {
                 <button
                   key={img}
                   onClick={() => setActiveImg(i)}
-                  className={`h-16 w-16 overflow-hidden rounded-lg border-2 ${i === activeImg ? "border-brand-600" : "border-ink-100"}`}
+                  className={`h-16 w-16 overflow-hidden rounded-lg border-2 bg-white ${i === activeImg ? "border-brand-600" : "border-ink-100"}`}
                 >
-                  <Image src={img} alt={`${loc.name} ${i + 1}`} width={80} height={80} className="h-full w-full object-cover" />
+                  <Image src={img} alt={`${loc.name} ${i + 1}`} width={80} height={80} className="h-full w-full object-contain p-1" />
                 </button>
               ))}
             </div>

@@ -39,9 +39,9 @@ export default function CartPage() {
           {lines.map(({ product, quantity }) => (
             <div key={product.id} className="rounded-2xl border border-ink-100 p-4">
               <div className="flex items-center gap-3">
-                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-ink-50 sm:h-20 sm:w-20">
+                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-white sm:h-20 sm:w-20">
                   {product.images?.[0] && (
-                    <Image src={product.images[0]} alt={localizeProduct(product, lang).name} width={80} height={80} className="h-full w-full object-cover" />
+                    <Image src={product.images[0]} alt={localizeProduct(product, lang).name} width={80} height={80} className="h-full w-full object-contain p-1" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">

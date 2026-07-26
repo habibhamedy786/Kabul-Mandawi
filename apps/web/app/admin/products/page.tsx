@@ -52,6 +52,8 @@ export default function AdminProductsPage() {
   const [uploading, setUploading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ created: number; failed: { sku: string; error: string }[] } | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   // Upload one or more photos and append them to the product's image list.
   async function handleImageUpload(files: FileList) {
@@ -231,6 +233,47 @@ export default function AdminProductsPage() {
   async function deactivate(id: string) {
     await api.admin.products.deactivate(id);
     load();
+  }
+
+  // ── Multi-select bulk actions ──────────────────────────────────────────
+  function toggleSelect(id: string) {
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  }
+  function toggleSelectAll() {
+    setSelected((s) => (s.length === products.length ? [] : products.map((p) => p.id)));
+  }
+
+  // Hide the selected products from the store (reversible — they can be re-activated).
+  async function bulkDeactivate() {
+    if (!selected.length) return;
+    if (!confirm(`Hide ${selected.length} product(s) from the store? They stay in your list and can be turned back on later.`)) return;
+    setBulkBusy(true);
+    try {
+      for (const id of selected) { try { await api.admin.products.deactivate(id); } catch { /* skip */ } }
+      setSelected([]); load();
+    } finally { setBulkBusy(false); }
+  }
+
+  // Permanently delete the selected products. Super Admins can force-delete items
+  // that appear in past orders (those orders keep their saved name and price).
+  async function bulkDelete() {
+    if (!selected.length) return;
+    if (!confirm(`Permanently delete ${selected.length} product(s)? This cannot be undone.`)) return;
+    setBulkBusy(true);
+    let failed = 0;
+    try {
+      for (const id of selected) {
+        try {
+          await api.admin.products.remove(id);
+        } catch (e) {
+          if (e instanceof ApiError && e.status === 409 && isSuperAdmin) {
+            try { await api.admin.products.remove(id, true); } catch { failed++; }
+          } else { failed++; }
+        }
+      }
+      setSelected([]); load();
+      if (failed) alert(`${failed} product(s) could not be deleted (they may be in past orders).`);
+    } finally { setBulkBusy(false); }
   }
 
   async function remove(p: Product) {
@@ -465,15 +508,40 @@ export default function AdminProductsPage() {
       )}
 
       {loading && <p className="text-ink-400">Loading products…</p>}
+
+      {/* Multi-select bar — tick products to deactivate or delete them in one go. */}
+      {isAdmin && products.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-ink-100 bg-white p-3">
+          <label className="flex items-center gap-2 text-sm text-ink-700">
+            <input type="checkbox" checked={selected.length === products.length && products.length > 0} onChange={toggleSelectAll} />
+            Select all
+          </label>
+          <span className="text-sm text-ink-500">{selected.length} selected</span>
+          <div className="ml-auto flex gap-2">
+            <Button size="sm" variant="outline" disabled={!selected.length || bulkBusy} onClick={bulkDeactivate}>Deactivate selected</Button>
+            <Button size="sm" variant="danger" disabled={!selected.length || bulkBusy} onClick={bulkDelete}>Delete selected</Button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {products.map((p) => (
           <Card key={p.id}>
             <CardBody className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-medium text-ink-900">{p.name}</p>
-                <p className="text-xs text-ink-400">{p.sku} · {p.category.name} · ${Number(p.priceUsd).toFixed(2)} · stock {p.stockQty}</p>
+              <div className="flex min-w-0 items-center gap-3">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 flex-shrink-0"
+                  checked={selected.includes(p.id)}
+                  onChange={() => toggleSelect(p.id)}
+                  aria-label={`Select ${p.name}`}
+                />
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-ink-900">{p.name}</p>
+                  <p className="truncate text-xs text-ink-400">{p.sku} · {p.category.name} · ${Number(p.priceUsd).toFixed(2)} · stock {p.stockQty}</p>
+                </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-shrink-0 gap-2">
                 <Button size="sm" variant="outline" onClick={() => startEdit(p)}>Edit</Button>
                 <Button size="sm" variant="outline" onClick={() => deactivate(p.id)}>Deactivate</Button>
                 <Button size="sm" variant="danger" onClick={() => remove(p)}>Delete</Button>

@@ -28,10 +28,10 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-xl border border-ink-900/10 bg-white transition-shadow hover:shadow-md">
-      <Link href={`/products/${product.id}`} className="relative block aspect-square overflow-hidden border-b border-ink-900/5 bg-paper">
+      <Link href={`/products/${product.id}`} className="relative block aspect-square overflow-hidden border-b border-ink-900/5 bg-white">
         {image ? (
           <>
-            <Image src={image} alt={loc.name} width={400} height={400} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <Image src={image} alt={loc.name} width={400} height={400} className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105" />
             <Watermark />
           </>
         ) : (

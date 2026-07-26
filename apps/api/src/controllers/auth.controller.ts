@@ -165,7 +165,8 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
 
     const resetUrl = `${env.clientUrl}/reset-password?token=${token}`;
     const mail = passwordResetEmail(resetUrl);
-    await sendEmail({ to: user.email, ...mail });
+    // Password reset comes from the support address, not orders@.
+    await sendEmail({ to: user.email, from: env.email.fromSupport, ...mail });
   }
 
   res.json({ success: true });

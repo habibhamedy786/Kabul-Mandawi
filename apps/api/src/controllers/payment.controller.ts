@@ -7,6 +7,7 @@ import { stripe } from "@/services/stripe.service";
 import { PaymentStatus, PaymentMethod } from "@prisma/client";
 import * as walletService from "@/services/wallet.service";
 import { sendEmail, orderConfirmationEmail } from "@/services/email.service";
+import { getAfnRate } from "@/services/currency.service";
 
 function mapPaymentMethod(intent: Stripe.PaymentIntent): PaymentMethod {
   const type = intent.payment_method_types?.[0];
@@ -77,6 +78,7 @@ export const stripeWebhookHandler = asyncHandler(async (req: Request, res: Respo
               quantity: i.quantity,
               lineTotalUsd: Number(i.lineTotalUsd),
             })),
+            afnPerUsd: await getAfnRate(),
           });
           await sendEmail({ to: order.user.email, ...mail });
         }

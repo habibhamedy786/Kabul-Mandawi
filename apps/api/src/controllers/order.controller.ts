@@ -9,6 +9,7 @@ import { createPaymentIntentForOrder } from "@/services/stripe.service";
 import { canTransition } from "@/utils/orderStatus";
 import * as walletService from "@/services/wallet.service";
 import { sendEmail, orderConfirmationEmail } from "@/services/email.service";
+import { getAfnRate } from "@/services/currency.service";
 
 const EXPRESS_FEE_USD = 5; // same-day express delivery; standard delivery in Kabul is free
 
@@ -120,6 +121,7 @@ export const createOrder = asyncHandler(async (req: AuthedRequest, res: Response
           quantity: i.quantity,
           lineTotalUsd: Number(i.lineTotalUsd),
         })),
+        afnPerUsd: await getAfnRate(),
         cod: true,
       });
       await sendEmail({ to: user.email, ...mail });
@@ -149,6 +151,7 @@ export const createOrder = asyncHandler(async (req: AuthedRequest, res: Response
         receiverName: order.receiverName,
         city: order.city,
         items: order.items.map((i) => ({ name: i.nameSnapshot, quantity: i.quantity, lineTotalUsd: Number(i.lineTotalUsd) })),
+        afnPerUsd: await getAfnRate(),
         cod: true,
       });
       await sendEmail({ to: user.email, ...mail });

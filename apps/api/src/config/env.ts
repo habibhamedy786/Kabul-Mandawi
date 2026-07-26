@@ -36,6 +36,10 @@ export const env = {
   // Which gateway powers checkout: "stripe" (international) or "hesabpay" (Afghanistan).
   paymentProvider: process.env.PAYMENT_PROVIDER ?? "stripe",
 
+  // Fallback AFN per 1 USD for receipts/emails, used only until the live daily
+  // rate loads. Keep this in sync with the storefront's NEXT_PUBLIC_AFN_PER_USD.
+  afnPerUsd: Number(process.env.AFN_PER_USD ?? 70),
+
   // HesabPay (hesab.com) — Afghanistan's digital wallet + card gateway.
   // All optional so the app boots without them; fill these in from your
   // HesabPay merchant dashboard once approved (see HESABPAY_SETUP.md).
@@ -51,7 +55,14 @@ export const env = {
   // skipped (and logged) until RESEND_API_KEY is set.
   email: {
     resendApiKey: process.env.RESEND_API_KEY ?? "",
+    // Order / transactional emails come from this address (typically orders@).
     from: process.env.EMAIL_FROM ?? "Kabul Mandawi <onboarding@resend.dev>",
+    // Account/support emails (e.g. password reset) come from support@ instead.
+    // Falls back to EMAIL_FROM if not set separately.
+    fromSupport:
+      process.env.EMAIL_FROM_SUPPORT ??
+      process.env.EMAIL_FROM ??
+      "Kabul Mandawi Support <support@kabulmandawi.com>",
   },
 
   s3: {

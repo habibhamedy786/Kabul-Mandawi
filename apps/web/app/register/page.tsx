@@ -9,15 +9,47 @@ import { Input, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import t from "@/lib/i18n/translations";
 
+// Afghanistan is pinned first; the rest are alphabetical. Flags are emoji so
+// they render on phones without any image assets.
 const COUNTRIES = [
-  { code: "US", name: "United States" },
-  { code: "CA", name: "Canada" },
-  { code: "DE", name: "Germany" },
-  { code: "TR", name: "Turkey" },
-  { code: "GB", name: "United Kingdom" },
-  { code: "AU", name: "Australia" },
-  { code: "AE", name: "UAE" },
-  { code: "SA", name: "Saudi Arabia" },
+  { code: "AF", flag: "🇦🇫", name: "Afghanistan" },
+  { code: "AU", flag: "🇦🇺", name: "Australia" },
+  { code: "AT", flag: "🇦🇹", name: "Austria" },
+  { code: "BE", flag: "🇧🇪", name: "Belgium" },
+  { code: "CA", flag: "🇨🇦", name: "Canada" },
+  { code: "CN", flag: "🇨🇳", name: "China" },
+  { code: "DK", flag: "🇩🇰", name: "Denmark" },
+  { code: "FI", flag: "🇫🇮", name: "Finland" },
+  { code: "FR", flag: "🇫🇷", name: "France" },
+  { code: "DE", flag: "🇩🇪", name: "Germany" },
+  { code: "IN", flag: "🇮🇳", name: "India" },
+  { code: "IR", flag: "🇮🇷", name: "Iran" },
+  { code: "IQ", flag: "🇮🇶", name: "Iraq" },
+  { code: "IE", flag: "🇮🇪", name: "Ireland" },
+  { code: "IT", flag: "🇮🇹", name: "Italy" },
+  { code: "JP", flag: "🇯🇵", name: "Japan" },
+  { code: "KZ", flag: "🇰🇿", name: "Kazakhstan" },
+  { code: "MY", flag: "🇲🇾", name: "Malaysia" },
+  { code: "NL", flag: "🇳🇱", name: "Netherlands" },
+  { code: "NZ", flag: "🇳🇿", name: "New Zealand" },
+  { code: "NO", flag: "🇳🇴", name: "Norway" },
+  { code: "PK", flag: "🇵🇰", name: "Pakistan" },
+  { code: "QA", flag: "🇶🇦", name: "Qatar" },
+  { code: "RU", flag: "🇷🇺", name: "Russia" },
+  { code: "SA", flag: "🇸🇦", name: "Saudi Arabia" },
+  { code: "SG", flag: "🇸🇬", name: "Singapore" },
+  { code: "ZA", flag: "🇿🇦", name: "South Africa" },
+  { code: "KR", flag: "🇰🇷", name: "South Korea" },
+  { code: "ES", flag: "🇪🇸", name: "Spain" },
+  { code: "SE", flag: "🇸🇪", name: "Sweden" },
+  { code: "CH", flag: "🇨🇭", name: "Switzerland" },
+  { code: "TJ", flag: "🇹🇯", name: "Tajikistan" },
+  { code: "TR", flag: "🇹🇷", name: "Turkey" },
+  { code: "TM", flag: "🇹🇲", name: "Turkmenistan" },
+  { code: "AE", flag: "🇦🇪", name: "United Arab Emirates" },
+  { code: "GB", flag: "🇬🇧", name: "United Kingdom" },
+  { code: "US", flag: "🇺🇸", name: "United States" },
+  { code: "UZ", flag: "🇺🇿", name: "Uzbekistan" },
 ];
 
 export default function RegisterPage() {
@@ -28,7 +60,7 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [country, setCountry] = useState("US");
+  const [country, setCountry] = useState("AF");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -56,7 +88,7 @@ export default function RegisterPage() {
         <Input label={tx.email} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input label={tx.password} type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
         <Select label={tx.country} value={country} onChange={(e) => setCountry(e.target.value)}>
-          {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
+          {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}
         </Select>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button type="submit" size="lg" className="w-full" disabled={submitting}>

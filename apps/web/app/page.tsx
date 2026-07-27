@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/ProductCard";
+import { Reveal } from "@/components/Reveal";
+import { Lightbox } from "@/components/Lightbox";
 import { api } from "@/lib/api";
 import { Product } from "@/lib/types";
 import { useLang } from "@/context/LanguageContext";
@@ -101,6 +103,7 @@ export default function HomePage() {
   const [heroImgOk, setHeroImgOk] = useState(true);
   const [featured, setFeatured] = useState<Product[]>([]);
   const [query, setQuery] = useState("");
+  const [lightbox, setLightbox] = useState(false);
 
   useEffect(() => {
     api.products.list("?featured=true&pageSize=8")
@@ -160,13 +163,16 @@ export default function HomePage() {
           {/* Framed market photograph */}
           <div className="lg:col-span-6">
             {heroImgOk && (
-              <div className="relative overflow-hidden rounded-2xl bg-ink-100 ring-1 ring-ink-900/10">
+              <div
+                onClick={() => setLightbox(true)}
+                className="group relative cursor-zoom-in overflow-hidden rounded-2xl bg-ink-100 ring-1 ring-ink-900/10"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={HERO_PHOTO}
                   alt=""
                   onError={() => setHeroImgOk(false)}
-                  className="aspect-[4/3] w-full object-cover lg:aspect-[5/4]"
+                  className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105 lg:aspect-[5/4]"
                 />
                 {/* Afghan flag accent along the photo base — dir=ltr keeps the
                     black-red-green order correct in RTL languages too */}
@@ -208,9 +214,9 @@ export default function HomePage() {
               {px.viewAll} →
             </Link>
           </div>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+          <Reveal className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
             {featured.slice(0, 4).map((p) => <ProductCard key={p.id} product={p} />)}
-          </div>
+          </Reveal>
           <div className="mt-8 text-center sm:hidden">
             <Link href="/products" className="text-sm font-semibold text-brand-700">{px.viewAll} →</Link>
           </div>
@@ -222,7 +228,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="font-display text-3xl font-semibold text-ink-900">{tx.categories.heading}</h2>
           <p className="mt-1.5 text-ink-500">{tx.categories.sub}</p>
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
+          <Reveal className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
             {tx.cats.map((c) => (
               <Link
                 key={c.slug}
@@ -235,7 +241,7 @@ export default function HomePage() {
                 <span className="font-medium text-ink-800">{c.name}</span>
               </Link>
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -245,6 +251,7 @@ export default function HomePage() {
           <h2 className="font-display text-3xl font-semibold text-ink-900">{tx.how.heading}</h2>
           <p className="mt-1.5 text-ink-500">{tx.how.sub}</p>
         </div>
+        <Reveal>
         <ol className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-6">
           {tx.how.steps.map((step, i) => (
             <li key={step.title} className="relative border-t-2 border-ink-900/10 pt-5">
@@ -255,11 +262,12 @@ export default function HomePage() {
             </li>
           ))}
         </ol>
+        </Reveal>
       </section>
 
       {/* Custom-request CTA */}
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-2xl bg-ink-900 px-6 py-14 text-center sm:px-12">
+        <Reveal className="overflow-hidden rounded-2xl bg-ink-900 px-6 py-14 text-center sm:px-12">
           <span className="mx-auto block h-0.5 w-12 bg-saffron-500" aria-hidden="true" />
           <h2 className="font-display mx-auto mt-6 max-w-2xl text-3xl font-semibold text-white">{tx.cta.heading}</h2>
           <p className="mx-auto mt-4 max-w-xl leading-relaxed text-ink-300">{tx.cta.sub}</p>
@@ -268,8 +276,10 @@ export default function HomePage() {
               <Button size="lg" className="shadow-lg shadow-black/20">{tx.cta.btn}</Button>
             </Link>
           </div>
-        </div>
+        </Reveal>
       </section>
+
+      {lightbox && <Lightbox src={HERO_PHOTO} alt="" onClose={() => setLightbox(false)} />}
     </div>
   );
 }

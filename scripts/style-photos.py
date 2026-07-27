@@ -63,7 +63,7 @@ def add_watermark(canvas):
     return Image.alpha_composite(canvas.convert("RGBA"), overlay).convert("RGB")
 
 
-def process(path, out_dir):
+def process(path, out_dir, watermark=True):
     img = Image.open(path).convert("RGBA")
     # flatten any transparency onto white first
     flat = Image.new("RGBA", img.size, (255, 255, 255, 255))
@@ -75,7 +75,8 @@ def process(path, out_dir):
     canvas = Image.new("RGB", (CANVAS, CANVAS), BG)
     canvas.paste(img, ((CANVAS - img.width) // 2, (CANVAS - img.height) // 2))
 
-    canvas = add_watermark(canvas)
+    if watermark:
+        canvas = add_watermark(canvas)
     name = os.path.splitext(os.path.basename(path))[0]
     out = os.path.join(out_dir, f"{name}_kabul.jpg")
     canvas.save(out, "JPEG", quality=90)
@@ -83,8 +84,10 @@ def process(path, out_dir):
 
 
 def main():
-    in_dir = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/Desktop/kabul-photos")
-    out_dir = sys.argv[2] if len(sys.argv) > 2 else os.path.join(in_dir, "edited")
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    watermark = "--no-watermark" not in sys.argv
+    in_dir = args[0] if len(args) > 0 else os.path.expanduser("~/Desktop/kabul-photos")
+    out_dir = args[1] if len(args) > 1 else os.path.join(in_dir, "edited")
     os.makedirs(out_dir, exist_ok=True)
     exts = (".jpg", ".jpeg", ".png", ".webp")
     files = [f for f in sorted(os.listdir(in_dir))
@@ -93,8 +96,8 @@ def main():
         print(f"No images found in {in_dir}")
         return
     for f in files:
-        print("->", process(os.path.join(in_dir, f), out_dir))
-    print(f"\nDone. {len(files)} photo(s) saved to {out_dir}")
+        print("->", process(os.path.join(in_dir, f), out_dir, watermark))
+    print(f"\nDone. {len(files)} photo(s) saved to {out_dir}  (watermark={'on' if watermark else 'off'})")
 
 
 if __name__ == "__main__":

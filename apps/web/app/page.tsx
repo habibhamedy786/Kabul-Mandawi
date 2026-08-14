@@ -154,6 +154,18 @@ function CategoryIcon({ slug, className }: { slug: string; className?: string })
   );
 }
 
+// Colorful tile styling per category (falls back to a neutral tint).
+const CAT_STYLES: Record<string, { bg: string; icon: string }> = {
+  groceries: { bg: "bg-gradient-to-br from-emerald-100 to-emerald-50", icon: "text-emerald-700" },
+  flowers: { bg: "bg-gradient-to-br from-rose-100 to-rose-50", icon: "text-rose-600" },
+  electronics: { bg: "bg-gradient-to-br from-sky-100 to-sky-50", icon: "text-sky-700" },
+  clothing: { bg: "bg-gradient-to-br from-violet-100 to-violet-50", icon: "text-violet-700" },
+  gifts: { bg: "bg-gradient-to-br from-amber-100 to-amber-50", icon: "text-amber-700" },
+};
+function catStyle(slug: string) {
+  return CAT_STYLES[slug] ?? { bg: "bg-gradient-to-br from-ink-100 to-ink-50", icon: "text-ink-700" };
+}
+
 function TrustIcon({ index, className }: { index: number; className?: string }) {
   const icons: React.ReactNode[] = [
     // 0 — secure card payments
@@ -307,18 +319,21 @@ export default function HomePage() {
             <p className="mt-1.5 text-ink-500">{tx.categories.sub}</p>
           </Reveal>
           <Reveal className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
-            {tx.cats.map((c) => (
-              <Link
-                key={c.slug}
-                href={`/products?category=${c.slug}`}
-                className="hover-lift group flex flex-col items-center gap-3 rounded-xl border border-ink-100 bg-paper p-6 text-center hover:border-brand-300 hover:bg-brand-50/60"
-              >
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-ink-700 ring-1 ring-ink-900/10 transition-colors group-hover:text-brand-700">
-                  <CategoryIcon slug={c.slug} className="h-6 w-6" />
-                </span>
-                <span className="font-medium text-ink-800">{c.name}</span>
-              </Link>
-            ))}
+            {tx.cats.map((c) => {
+              const style = catStyle(c.slug);
+              return (
+                <Link
+                  key={c.slug}
+                  href={`/products?category=${c.slug}`}
+                  className={`hover-lift group flex aspect-square flex-col items-center justify-center gap-4 rounded-2xl ${style.bg} p-6 text-center ring-1 ring-black/5`}
+                >
+                  <span className={`flex h-16 w-16 items-center justify-center rounded-full bg-white/80 shadow-sm ${style.icon} transition-transform duration-300 group-hover:scale-110`}>
+                    <CategoryIcon slug={c.slug} className="h-8 w-8" />
+                  </span>
+                  <span className="font-semibold text-ink-900">{c.name}</span>
+                </Link>
+              );
+            })}
           </Reveal>
         </div>
       </section>

@@ -27,7 +27,7 @@ export function ProductCard({ product }: { product: Product }) {
   const outOfStock = product.stockQty <= 0;
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-xl border border-ink-900/10 bg-white transition-shadow hover:shadow-md">
+    <div className="hover-lift group flex flex-col overflow-hidden rounded-xl border border-ink-900/10 bg-white">
       <Link href={`/products/${product.id}`} className="relative block aspect-square overflow-hidden border-b border-ink-900/5 bg-white">
         {image ? (
           <>

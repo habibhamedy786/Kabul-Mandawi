@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Product, Category } from "@/lib/types";
 import { ProductCard } from "@/components/ProductCard";
+import { Reveal } from "@/components/Reveal";
 import { useLang } from "@/context/LanguageContext";
 import t from "@/lib/i18n/translations";
 import { localizeCategoryName } from "@/lib/i18n/catalog";
@@ -113,9 +114,9 @@ function ProductsContent() {
           <a href="/custom-request" className="font-medium text-brand-700 underline">{tx.customRequestLink}</a>.
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <Reveal className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {sorted.map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
+        </Reveal>
       )}
     </div>
   );

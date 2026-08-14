@@ -229,7 +229,7 @@ export default function HomePage() {
       {/* Featured products */}
       {featured.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between">
+          <Reveal className="flex items-end justify-between">
             <div>
               <h2 className="font-display text-3xl font-semibold text-ink-900">{px.featuredHeading}</h2>
               <p className="mt-1.5 text-ink-500">{px.featuredSub}</p>
@@ -237,7 +237,7 @@ export default function HomePage() {
             <Link href="/products" className="hidden text-sm font-semibold text-brand-700 hover:text-brand-800 sm:block">
               {px.viewAll} →
             </Link>
-          </div>
+          </Reveal>
           <Reveal className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
             {featured.slice(0, 4).map((p) => <ProductCard key={p.id} product={p} />)}
           </Reveal>
@@ -250,8 +250,10 @@ export default function HomePage() {
       {/* Categories */}
       <section className="border-y border-ink-900/5 bg-white py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="font-display text-3xl font-semibold text-ink-900">{tx.categories.heading}</h2>
-          <p className="mt-1.5 text-ink-500">{tx.categories.sub}</p>
+          <Reveal>
+            <h2 className="font-display text-3xl font-semibold text-ink-900">{tx.categories.heading}</h2>
+            <p className="mt-1.5 text-ink-500">{tx.categories.sub}</p>
+          </Reveal>
           <Reveal className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
             {tx.cats.map((c) => (
               <Link
@@ -271,10 +273,10 @@ export default function HomePage() {
 
       {/* How it works */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="max-w-xl">
+        <Reveal className="max-w-xl">
           <h2 className="font-display text-3xl font-semibold text-ink-900">{tx.how.heading}</h2>
           <p className="mt-1.5 text-ink-500">{tx.how.sub}</p>
-        </div>
+        </Reveal>
         <Reveal>
         <ol className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-6">
           {tx.how.steps.map((step, i) => (

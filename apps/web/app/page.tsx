@@ -46,10 +46,111 @@ function CategoryIcon({ slug, className }: { slug: string; className?: string })
         <path d="M12 8.5c1.6 0 3.4-.6 3.4-2.4 0-1.9-2.4-2.3-3.4-.3-1-2-3.4-1.6-3.4.3 0 1.8 1.8 2.4 3.4 2.4z" />
       </>
     ),
+    oil: (
+      <>
+        <path d="M10 3.5h4v2l1 1.5V19a1.5 1.5 0 01-1.5 1.5h-3A1.5 1.5 0 019 19V7l1-1.5v-2z" />
+        <path d="M9.5 12.5h5" />
+      </>
+    ),
+    dairy: (
+      <>
+        <path d="M7.5 8.5l1.8-4h5.4l1.8 4V19a1.5 1.5 0 01-1.5 1.5H9a1.5 1.5 0 01-1.5-1.5V8.5z" />
+        <path d="M7.5 8.5h9M12 4.5v4" />
+      </>
+    ),
+    grains: (
+      <>
+        <path d="M12 20.5V9" />
+        <path d="M12 9c1.6 0 3-1.4 3-3-1.6 0-3 1.4-3 3zM12 9c-1.6 0-3-1.4-3-3 1.6 0 3 1.4 3 3z" />
+        <path d="M12 13.5c1.6 0 3-1.4 3-3-1.6 0-3 1.4-3 3zM12 13.5c-1.6 0-3-1.4-3-3 1.6 0 3 1.4 3 3z" />
+      </>
+    ),
+    legumes: (
+      <>
+        <ellipse cx="9.5" cy="10" rx="2.6" ry="1.7" transform="rotate(-25 9.5 10)" />
+        <ellipse cx="14" cy="12.5" rx="2.6" ry="1.7" transform="rotate(20 14 12.5)" />
+        <ellipse cx="10" cy="15" rx="2.6" ry="1.7" transform="rotate(-8 10 15)" />
+      </>
+    ),
+    tea: (
+      <>
+        <path d="M6 9h10v4.5a3.5 3.5 0 01-3.5 3.5h-3A3.5 3.5 0 016 13.5V9z" />
+        <path d="M16 10h1.5a1.8 1.8 0 010 3.6H16" />
+        <path d="M5.5 20h11" />
+        <path d="M9 5.5c-.5.7-.5 1.3 0 2M12 5c-.5.7-.5 1.3 0 2" />
+      </>
+    ),
+    beverages: (
+      <>
+        <rect x="8.5" y="4" width="7" height="16" rx="1.6" />
+        <path d="M8.5 8h7M11 4v2h2V4" />
+      </>
+    ),
+    spices: (
+      <>
+        <path d="M8 10.5h8V19a1.5 1.5 0 01-1.5 1.5h-5A1.5 1.5 0 018 19v-8.5z" />
+        <path d="M8.5 10.5V9a1.5 1.5 0 011.5-1.5h4A1.5 1.5 0 0115.5 9v1.5" />
+        <path d="M10.5 6h3M11 13h.01M13 13h.01M12 15h.01" />
+      </>
+    ),
+    fruit: (
+      <>
+        <path d="M12 8.5c-1.2-1.6-3.6-2-5-.7C5.2 9.4 5.7 13.6 8 16.6c1 1.3 2 2.1 4 2.1s3-.8 4-2.1c2.3-3 2.8-7.2 1-8.8-1.4-1.3-3.8-.9-5 .7z" />
+        <path d="M12 8.5V6M12 6c.7-1 2-1.3 2.8-.8" />
+      </>
+    ),
+    bakery: (
+      <>
+        <path d="M4.5 11.5c0-2.5 3.4-4 7.5-4s7.5 1.5 7.5 4c0 1-.9 1.8-2 1.8H6.5c-1.1 0-2-.8-2-1.8z" />
+        <path d="M6.5 13.3V18a1.2 1.2 0 001.2 1.2h8.6A1.2 1.2 0 0017.5 18v-4.7" />
+        <path d="M9.5 10.5l-1 2M12.5 10.3l-1 2.2M15 10.8l-1 2" />
+      </>
+    ),
+    honey: (
+      <>
+        <rect x="8" y="9.5" width="8" height="10.5" rx="1.4" />
+        <path d="M8 12.5h8" />
+        <path d="M10 9.5V7.5h4v2M11 5h2" />
+      </>
+    ),
+    meat: (
+      <>
+        <path d="M13.8 5.2a4.2 4.2 0 00-6 5.9L4.6 14.3a1.9 1.9 0 102.7 2.7l3.2-3.2a4.2 4.2 0 003.3-8.6z" />
+        <path d="M5.5 16.5L4 18M7 18l-1.5 1.5" />
+      </>
+    ),
   };
+
+  // Map any category slug (including imported ones like "sunflower-oil" or
+  // "dairy-products") to the closest icon by keyword; exact matches win.
+  const s = slug.toLowerCase();
+  let key = paths[s] ? s : "";
+  if (!key) {
+    const rules: [string[], string][] = [
+      [["flower", "gul"], "flowers"],
+      [["oil", "roghan"], "oil"],
+      [["dairy", "milk", "cheese", "yogurt", "labaniyat"], "dairy"],
+      [["grain", "rice", "flour", "wheat", "staple", "hoboobat"], "grains"],
+      [["legume", "bean", "lentil", "chickpea", "pulse"], "legumes"],
+      [["tea", "coffee", "chai"], "tea"],
+      [["beverage", "drink", "soda", "juice", "water", "energy"], "beverages"],
+      [["spice", "masala", "salt", "saffron"], "spices"],
+      [["fruit", "nut", "date", "raisin", "dried"], "fruit"],
+      [["bak", "bread", "breakfast", "cake", "biscuit", "snack"], "bakery"],
+      [["honey", "majoon"], "honey"],
+      [["meat", "protein", "chicken", "beef", "gosht"], "meat"],
+      [["electronic", "mobile", "phone", "laptop", "gadget", "computer"], "electronics"],
+      [["cloth", "wear", "apparel", "poshak"], "clothing"],
+      [["gift", "hadya"], "gifts"],
+    ];
+    for (const [words, k] of rules) {
+      if (words.some((w) => s.includes(w))) { key = k; break; }
+    }
+  }
+
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      {paths[slug] ?? paths.groceries}
+      {paths[key] ?? paths.groceries}
     </svg>
   );
 }

@@ -6,14 +6,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/ProductCard";
 import { Reveal } from "@/components/Reveal";
-import { Lightbox } from "@/components/Lightbox";
 import { api } from "@/lib/api";
 import { Product } from "@/lib/types";
 import { useLang } from "@/context/LanguageContext";
 import t from "@/lib/i18n/translations";
 
-// Hero photo: the Afghan bazaar-at-sunset photo in apps/web/public/landmarks/.
-const HERO_PHOTO = "/landmarks/hero-bg.jpg";
+// Promotional hero banner (your branded graphic) in apps/web/public/.
+const PROMO_BANNER = "/promo-banner.png";
 
 /* ── Hand-drawn line icons (24×24, stroke) ─────────────────────────── */
 
@@ -201,10 +200,8 @@ export default function HomePage() {
   const router = useRouter();
   const tx = t[lang].home;
   const px = t[lang].products;
-  const [heroImgOk, setHeroImgOk] = useState(true);
   const [featured, setFeatured] = useState<Product[]>([]);
   const [query, setQuery] = useState("");
-  const [lightbox, setLightbox] = useState(false);
 
   useEffect(() => {
     api.products.list("?featured=true&pageSize=8")
@@ -220,96 +217,50 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero — bold storefront promo banner */}
+      {/* Hero — promotional banner, click to shop */}
       <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-800 via-brand-700 to-brand-800 px-6 py-12 shadow-xl shadow-brand-900/20 sm:px-10 lg:px-14 lg:py-16">
-          {/* soft decorative glows for depth */}
-          <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-saffron-400/25 blur-3xl" />
-          <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-brand-400/25 blur-3xl" />
+        <Reveal>
+          <Link
+            href="/products"
+            aria-label={tx.shopNow}
+            className="hover-lift group block overflow-hidden rounded-3xl shadow-xl shadow-brand-900/15 ring-1 ring-black/5"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={PROMO_BANNER}
+              alt="Kabul Mandawi — fresh products for a better life"
+              className="w-full transition-transform duration-500 group-hover:scale-[1.02]"
+            />
+          </Link>
+        </Reveal>
 
-          <div className="relative grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-12">
-            {/* Copy */}
-            <div className="lg:col-span-6">
-              <Reveal>
-                <p className="flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-saffron-300">
-                  <span className="inline-block h-px w-8 bg-saffron-400" aria-hidden="true" />
-                  {tx.badge}
-                </p>
-              </Reveal>
-              <Reveal delay={80}>
-                <h1 className="font-display mt-4 text-4xl font-semibold leading-[1.08] text-white sm:text-5xl lg:text-[3.4rem]">
-                  {tx.headline}
-                </h1>
-              </Reveal>
-              <Reveal delay={160}>
-                <p className="mt-5 max-w-lg text-lg leading-relaxed text-white/85">{tx.sub}</p>
-              </Reveal>
-
-              <Reveal delay={240}>
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Link href="/products">
-                    <Button size="lg" className="w-full bg-saffron-500 text-ink-900 shadow-lg shadow-black/25 hover:bg-saffron-400 sm:w-auto">
-                      {tx.shopNow} →
-                    </Button>
-                  </Link>
-                  <form onSubmit={onSearch} className="flex flex-1 overflow-hidden rounded-xl border border-white/25 bg-white/10 backdrop-blur transition-colors focus-within:border-white/60">
-                    <input
-                      type="search"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder={tx.searchPlaceholder}
-                      className="w-full bg-transparent px-4 py-3 text-white placeholder:text-white/60 focus:outline-none"
-                    />
-                    <button type="submit" className="shrink-0 px-4 text-sm font-semibold text-white/90 hover:text-white">
-                      {tx.searchBtn}
-                    </button>
-                  </form>
-                </div>
-              </Reveal>
-
-              {/* Category quick links */}
-              <Reveal delay={320}>
-                <div className="mt-6 flex flex-wrap items-center gap-2">
-                  {tx.cats.map((c) => (
-                    <Link
-                      key={c.slug}
-                      href={`/products?category=${c.slug}`}
-                      className="rounded-full border border-white/20 bg-white/5 px-3.5 py-1.5 text-sm text-white/85 transition-colors hover:bg-white/15 hover:text-white"
-                    >
-                      {c.name}
-                    </Link>
-                  ))}
-                </div>
-              </Reveal>
-            </div>
-
-            {/* Floating market photo with a subtle 3D tilt on hover */}
-            <div className="lg:col-span-6">
-              {heroImgOk && (
-                <div className="animate-float group [perspective:1200px]">
-                  <div
-                    onClick={() => setLightbox(true)}
-                    className="relative cursor-zoom-in overflow-hidden rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/20 transition-transform duration-500 ease-out will-change-transform group-hover:[transform:rotateX(4deg)_rotateY(-6deg)_scale(1.03)]"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={HERO_PHOTO}
-                      alt=""
-                      onError={() => setHeroImgOk(false)}
-                      className="aspect-[4/3] w-full object-cover lg:aspect-[5/4]"
-                    />
-                    {/* Afghan flag accent along the photo base */}
-                    <div dir="ltr" className="absolute bottom-0 left-0 flex h-1.5 w-full" aria-hidden="true">
-                      <span className="flex-1 bg-ink-900" />
-                      <span className="flex-1 bg-red-700" />
-                      <span className="flex-1 bg-brand-700" />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+        {/* Search + category shortcuts under the banner */}
+        <Reveal delay={120}>
+          <form onSubmit={onSearch} className="mx-auto mt-6 flex max-w-2xl overflow-hidden rounded-xl border border-ink-200 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={tx.searchPlaceholder}
+              className="w-full bg-transparent px-4 py-3.5 text-ink-900 placeholder:text-ink-400 focus:outline-none"
+            />
+            <button type="submit" className="m-1.5 shrink-0 rounded-lg bg-brand-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-700">
+              {tx.searchBtn}
+            </button>
+          </form>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            {tx.cats.map((c) => (
+              <Link
+                key={c.slug}
+                href={`/products?category=${c.slug}`}
+                className="flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3.5 py-1.5 text-sm text-ink-700 transition-colors hover:border-brand-400 hover:text-brand-700"
+              >
+                <CategoryIcon slug={c.slug} className="h-4 w-4" />
+                {c.name}
+              </Link>
+            ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* Trust band */}
@@ -405,8 +356,6 @@ export default function HomePage() {
           </div>
         </Reveal>
       </section>
-
-      {lightbox && <Lightbox src={HERO_PHOTO} alt="" onClose={() => setLightbox(false)} />}
     </div>
   );
 }

@@ -12,7 +12,14 @@ import { useLang } from "@/context/LanguageContext";
 import t from "@/lib/i18n/translations";
 
 // Promotional hero banner (your branded graphic) in apps/web/public/.
+// Per-language versions fall back to the English one until you add them:
+// drop promo-banner-fa.png (Dari) and promo-banner-ps.png (Pashto) in public/.
 const PROMO_BANNER = "/promo-banner.png";
+const BANNER_BY_LANG: Record<string, string> = {
+  en: "/promo-banner.png",
+  fa: "/promo-banner-fa.png",
+  ps: "/promo-banner-ps.png",
+};
 
 /* ── Hand-drawn line icons (24×24, stroke) ─────────────────────────── */
 
@@ -166,45 +173,6 @@ function catStyle(slug: string) {
   return CAT_STYLES[slug] ?? { bg: "bg-gradient-to-br from-ink-100 to-ink-50", icon: "text-ink-700" };
 }
 
-function TrustIcon({ index, className }: { index: number; className?: string }) {
-  const icons: React.ReactNode[] = [
-    // 0 — secure card payments
-    <>
-      <rect x="2.5" y="5.25" width="19" height="13.5" rx="1.75" />
-      <path d="M2.5 9.25h19M5.5 14.5h4.5" />
-    </>,
-    // 1 — wallet hold protection
-    <>
-      <path d="M12 3l7.5 3v5.1c0 4.5-3 8.4-7.5 9.9-4.5-1.5-7.5-5.4-7.5-9.9V6L12 3z" />
-      <path d="M9.25 12.25l2 2 3.5-4.25" />
-    </>,
-    // 2 — delivery truck
-    <>
-      <path d="M2.75 6.25h11v10.5h-11zM13.75 9.25h3.9c.5 0 .96.24 1.24.65l2.1 3.03c.17.25.26.55.26.85v3h-2.5" />
-      <circle cx="7" cy="17.75" r="1.75" />
-      <circle cx="17" cy="17.75" r="1.75" />
-      <path d="M8.75 17.75h6.5" />
-    </>,
-    // 3 — photo delivery proof
-    <>
-      <path d="M3.25 8.25c0-.97.7-1.8 1.66-1.9.62-.07 1.24-.13 1.87-.18l.9-1.62c.3-.55.87-.9 1.5-.93a41 41 0 015.64 0c.63.03 1.2.38 1.5.93l.9 1.62c.63.05 1.25.11 1.87.18.96.1 1.66.93 1.66 1.9v9.5a2 2 0 01-2 2H5.25a2 2 0 01-2-2v-9.5z" />
-      <circle cx="12" cy="13" r="3.25" />
-    </>,
-    // 4 — real customer support
-    <>
-      <path d="M4.25 10.5a7.75 7.75 0 0115.5 0" />
-      <rect x="2.75" y="10.5" width="3.75" height="6" rx="1.5" />
-      <rect x="17.5" y="10.5" width="3.75" height="6" rx="1.5" />
-      <path d="M19.75 16.5v1.25a2.5 2.5 0 01-2.5 2.5H13.5" />
-    </>,
-  ];
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      {icons[index % icons.length]}
-    </svg>
-  );
-}
-
 /* ── Page ──────────────────────────────────────────────────────────── */
 
 export default function HomePage() {
@@ -239,8 +207,12 @@ export default function HomePage() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={PROMO_BANNER}
+              src={BANNER_BY_LANG[lang] ?? PROMO_BANNER}
               alt="Kabul Mandawi — fresh products for a better life"
+              onError={(e) => {
+                // If a language-specific banner isn't uploaded yet, use the English one.
+                if (!e.currentTarget.src.endsWith(PROMO_BANNER)) e.currentTarget.src = PROMO_BANNER;
+              }}
               className="w-full transition-transform duration-500 group-hover:scale-[1.02]"
             />
           </Link>
@@ -273,21 +245,6 @@ export default function HomePage() {
             ))}
           </div>
         </Reveal>
-      </section>
-
-      {/* Trust band */}
-      <section className="border-b border-ink-900/5 bg-white">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-x-8 gap-y-6 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-5 lg:px-8">
-          {tx.features.map((f, i) => (
-            <div key={f.title} className="flex gap-3.5">
-              <TrustIcon index={i} className="h-6 w-6 shrink-0 text-brand-700" />
-              <div>
-                <h3 className="text-sm font-semibold text-ink-900">{f.title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-ink-500">{f.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
       </section>
 
       {/* Featured products */}

@@ -82,7 +82,9 @@ function ProductsContent() {
           <button onClick={() => router.push("/products")} className={`rounded-full px-4 py-1.5 text-sm font-medium ${!categorySlug ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-700"}`}>
             {tx.all}
           </button>
-          {categories.map((c) => (
+          {categories
+            .filter((c) => (c._count?.products ?? 0) > 0 || c.slug === categorySlug)
+            .map((c) => (
             <button
               key={c.slug}
               onClick={() => router.push(`/products?category=${c.slug}`)}

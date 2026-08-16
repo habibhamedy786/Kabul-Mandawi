@@ -29,6 +29,7 @@ export interface Category {
   slug: string;
   description?: string;
   imageUrl?: string;
+  _count?: { products: number };
 }
 
 export interface Product {

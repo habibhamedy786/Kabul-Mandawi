@@ -60,9 +60,12 @@ body {
 .hover-lift {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-.hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.18);
+/* Only lift on devices with a real pointer — avoids sticky hover after a tap. */
+@media (hover: hover) and (pointer: fine) {
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.18);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -275,23 +275,24 @@ export default function HomePage() {
             <h2 className="font-display text-3xl font-semibold text-ink-900">{tx.categories.heading}</h2>
             <p className="mt-1.5 text-ink-500">{tx.categories.sub}</p>
           </Reveal>
-          <Reveal className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
-            {tx.cats.map((c) => {
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
+            {tx.cats.map((c, i) => {
               const style = catStyle(c.slug);
               return (
-                <Link
-                  key={c.slug}
-                  href={`/products?category=${c.slug}`}
-                  className={`hover-lift group flex aspect-square flex-col items-center justify-center gap-4 rounded-2xl ${style.bg} p-6 text-center ring-1 ring-black/5`}
-                >
-                  <span className={`flex h-16 w-16 items-center justify-center rounded-full bg-white/80 shadow-sm ${style.icon} transition-transform duration-300 group-hover:scale-110`}>
-                    <CategoryIcon slug={c.slug} className="h-8 w-8" />
-                  </span>
-                  <span className="font-semibold text-ink-900">{c.name}</span>
-                </Link>
+                <Reveal key={c.slug} delay={i * 60} className="aspect-square">
+                  <Link
+                    href={`/products?category=${c.slug}`}
+                    className={`hover-lift group flex h-full w-full flex-col items-center justify-center gap-4 rounded-2xl ${style.bg} p-6 text-center ring-1 ring-black/5`}
+                  >
+                    <span className={`flex h-16 w-16 items-center justify-center rounded-full bg-white/80 shadow-sm ${style.icon} transition-transform duration-300 group-hover:scale-110`}>
+                      <CategoryIcon slug={c.slug} className="h-8 w-8" />
+                    </span>
+                    <span className="font-semibold text-ink-900">{c.name}</span>
+                  </Link>
+                </Reveal>
               );
             })}
-          </Reveal>
+          </div>
         </div>
       </section>
 
